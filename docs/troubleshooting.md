@@ -42,6 +42,10 @@ doğrulayın. Proje `yt-dlp[default]` bağımlılığı sayesinde eşleşen
 Tarayıcı pencerelerini ve arka plan süreçlerini kapatın. Windows'ta sorun
 sürüyorsa Firefox ile oturum açıp `--browser firefox` kullanın.
 
+UI'ı Chrome'da görüntülerken oturum kaynağı olarak Chrome seçilirse Chrome
+kendi cookie dosyasını kilitli tutar. UI'ı Edge/Firefox'ta açıp Chrome'u
+tamamen kapatın veya Firefox hesabını oturum kaynağı olarak kullanın.
+
 ## `Sign in to confirm you're not a bot`
 
 `yt-dlp` ve bu proje güncel olmalıdır:

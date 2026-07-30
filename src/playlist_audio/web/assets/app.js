@@ -25,6 +25,17 @@ function updateBrowserProfile() {
   if (browserProfile.disabled) {
     browserProfile.value = "";
   }
+
+  const browserHint = document.querySelector("#browser-hint");
+  const chromiumBrowsers = ["brave", "chrome", "chromium", "edge", "opera", "vivaldi"];
+  if (chromiumBrowsers.includes(browserSelect.value)) {
+    browserHint.textContent =
+      "Windows’ta seçili tarayıcı tamamen kapalı olmalı; açıkken cookie kasası kilitlenir.";
+  } else if (browserSelect.value === "firefox") {
+    browserHint.textContent = "Sorun yaşarsanız Firefox’u tamamen kapatıp yeniden deneyin.";
+  } else {
+    browserHint.textContent = "";
+  }
 }
 
 function setBusy(busy) {

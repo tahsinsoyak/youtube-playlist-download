@@ -56,6 +56,15 @@ form { display: grid; gap: 18px; }
   text-transform: uppercase;
 }
 
+.field-hint {
+  min-height: 0;
+  color: var(--signal);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.field-hint:empty { display: none; }
+
 input, select {
   width: 100%;
   min-height: 48px;

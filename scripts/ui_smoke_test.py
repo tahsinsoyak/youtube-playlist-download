@@ -47,6 +47,9 @@ def run() -> None:
         expect(profile).to_be_disabled()
         page.locator("#browser").select_option("firefox")
         expect(profile).to_be_enabled()
+        expect(page.locator("#browser-hint")).to_contain_text("Firefox")
+        page.locator("#browser").select_option("chrome")
+        expect(page.locator("#browser-hint")).to_contain_text("cookie kasası kilitlenir")
         page.locator("#browser").select_option("")
         expect(profile).to_be_disabled()
 

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from yt_dlp import YoutubeDL
+from yt_dlp.cookies import CookieLoadError
 from yt_dlp.utils import DownloadError
 
 from playlist_audio.models import DownloadRequest
@@ -13,6 +14,28 @@ from playlist_audio.options import build_ydl_options
 
 class DownloadFailed(RuntimeError):
     """User-facing download failure."""
+
+
+def _browser_session_error(request: DownloadRequest) -> str:
+    browser = request.browser.value.capitalize() if request.browser else "Tarayıcı"
+    if request.browser and request.browser.value in {
+        "brave",
+        "chrome",
+        "chromium",
+        "edge",
+        "opera",
+        "vivaldi",
+    }:
+        return (
+            f"{browser} oturumu okunamadı. Windows, tarayıcı açıkken cookie "
+            "veritabanını kilitliyor. Arayüzü başka bir tarayıcıda açın; "
+            f"{browser} pencerelerini ve arka plan süreçlerini tamamen kapatıp yeniden deneyin. "
+            "Alternatif olarak YouTube'a Firefox'ta giriş yapıp Firefox'u seçin."
+        )
+    return (
+        f"{browser} oturumu okunamadı. Doğru profile giriş yaptığınızı kontrol edin, "
+        "tarayıcıyı tamamen kapatıp yeniden deneyin."
+    )
 
 
 def download(
@@ -29,6 +52,8 @@ def download(
     try:
         with YoutubeDL(options) as ydl:
             return_code = ydl.download([request.url])
+    except (CookieLoadError, PermissionError) as error:
+        raise DownloadFailed(_browser_session_error(request)) from error
     except DownloadError as error:
         raise DownloadFailed(str(error)) from error
 

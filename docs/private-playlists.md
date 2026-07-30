@@ -33,6 +33,11 @@ işletim sistemi destekli şifreleme nedeniyle çözülemeyebilir. Önce tarayı
 ve arka plan süreçlerini tamamen kapatın. Sorun sürerse Firefox profili
 kullanmak genellikle daha güvenilirdir.
 
+UI'ı Chrome'da açtıysanız Chrome çerezleri doğal olarak kilitli kalır. Bu
+durumda UI adresini Edge veya Firefox'ta açın, Chrome'u tamamen kapatın ve
+oturum kaynağı olarak Chrome'u seçin. Diğer seçenek, YouTube'a Firefox'ta
+giriş yapıp UI'da Firefox'u seçmektir.
+
 Belirli bir profil:
 
 ```powershell
