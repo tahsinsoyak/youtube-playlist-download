@@ -20,7 +20,8 @@ uv run playlist-audio ui
 Tarayıcı otomatik olarak `http://127.0.0.1:8765` adresinde açılır. URL’yi
 yapıştırın, private playlist için tarayıcıyı seçin ve önce güvenli önizlemeyi
 çalıştırın. CLI kullanmak zorunda değilsiniz; mevcut CLI otomasyon ve gelişmiş
-kullanım için korunur.
+kullanım için korunur. İndirme sürerken yeni playlistler sıraya eklenebilir;
+anlık hız, aktarılan boyut, parça sırası ve kalan süre arayüzde canlı gösterilir.
 
 ## Neden localhost?
 
@@ -33,6 +34,8 @@ aktarmaz veya diske yazmaz.
 
 - Public, unlisted ve erişim yetkiniz olan private playlist desteği
 - Framework gerektirmeyen hafif localhost web arayüzü
+- İndirme sırasında yeni playlist eklemeyi destekleyen sıralı iş kuyruğu
+- Canlı KB/s, aktarılan boyut, parça sayısı, toplam ilerleme ve ETA göstergeleri
 - En iyi mevcut ses akışını MP3'e dönüştürme
 - En yüksek FFmpeg VBR kalitesi (`0`) varsayılanı
 - Kapak görseli ve medya metadata'sı
@@ -97,9 +100,9 @@ uv run playlist-audio download "PLAYLIST_URL" `
 
 ## Proje durumu
 
-Bu sürüm yerel kullanım odaklı ilk CLI sürümüdür. Web arayüzü düşünülürse
-kimlik doğrulama çerezlerini sunucuya göndermeyen, yerel yardımcı süreç kullanan
-bir mimari tercih edilmelidir.
+CLI ve localhost web arayüzü birlikte desteklenir. İş kuyruğu bellekte tutulur;
+uygulama kapatılırsa bekleyen işler yeniden eklenmelidir. Tamamlanan dosyalar ve
+indirme arşivi diskte kalır.
 
 ## Lisans
 

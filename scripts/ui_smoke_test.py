@@ -1,5 +1,6 @@
 """Playwright smoke test for the local web interface."""
 
+import json
 import re
 from pathlib import Path
 
@@ -49,7 +50,7 @@ def run() -> None:
         expect(profile).to_be_enabled()
         expect(page.locator("#browser-hint")).to_contain_text("Firefox")
         page.locator("#browser").select_option("chrome")
-        expect(page.locator("#browser-hint")).to_contain_text("cookie kasası kilitlenir")
+        expect(page.locator("#browser-hint")).to_contain_text("arayüz Chrome’da açık")
         page.locator("#browser").select_option("")
         expect(profile).to_be_disabled()
 
@@ -75,13 +76,74 @@ def run() -> None:
         expect(page.locator("#job-message")).to_have_text("Önizleme tamamlandı")
         page.screenshot(path=RESULTS_DIR / "ui-desktop.png", full_page=True)
 
+        queue_snapshot = {
+            "active": {
+                "id": "active-job",
+                "sequence": 2,
+                "state": "running",
+                "progress": 42.5,
+                "message": "Ses akışı indiriliyor",
+                "current_item": "Current test song",
+                "playlist_title": "Test archive",
+                "downloaded_bytes": 512_000,
+                "total_bytes": 1_000_000,
+                "speed": 256_000,
+                "eta": 75,
+                "item_index": 3,
+                "item_count": 10,
+                "queue_position": None,
+                "dry_run": False,
+                "output": "downloads",
+            },
+            "queued": [
+                {
+                    "id": "queued-job",
+                    "sequence": 3,
+                    "state": "queued",
+                    "queue_position": 1,
+                    "dry_run": False,
+                    "output": "downloads",
+                }
+            ],
+            "recent": [],
+            "counts": {"running": 1, "queued": 1},
+        }
+        queue_page = browser.new_page(viewport={"width": 1440, "height": 1100})
+        queue_page.route(
+            "**/api/jobs",
+            lambda route: route.fulfill(
+                status=200,
+                content_type="application/json",
+                body=json.dumps(queue_snapshot),
+            ),
+        )
+        queue_page.goto(BASE_URL)
+        queue_page.wait_for_load_state("networkidle")
+        expect(queue_page.locator("#job-state")).to_have_text("KAYIT")
+        expect(queue_page.locator("#job-percent")).to_have_text("%43")
+        expect(queue_page.locator("#metric-track")).to_have_text("3 / 10")
+        expect(queue_page.locator("#metric-speed")).to_have_text("250 KB/s")
+        expect(queue_page.locator("#metric-eta")).to_have_text("1 dk 15 sn")
+        expect(queue_page.locator("#queue-count")).to_have_text("1 bekliyor")
+        expect(queue_page.locator("#queue-list li")).to_have_count(1)
+        expect(queue_page.locator("#submit-button")).to_be_enabled()
+        expect(queue_page.locator("#button-label")).to_have_text("Önizlemeyi sıraya ekle")
+        queue_page.screenshot(path=RESULTS_DIR / "ui-queue.png", full_page=True)
+        queue_page.close()
+
         mobile = browser.new_page(viewport={"width": 390, "height": 844})
         mobile.goto(BASE_URL)
         mobile.wait_for_load_state("networkidle")
         expect(mobile.get_by_role("heading", name="Playlist’ini rafına indir.")).to_be_visible()
-        has_overflow = mobile.evaluate("document.documentElement.scrollWidth > window.innerWidth")
-        assert not has_overflow, "Mobile layout has horizontal overflow"
         mobile.screenshot(path=RESULTS_DIR / "ui-mobile.png", full_page=True)
+        has_overflow = mobile.evaluate("document.documentElement.scrollWidth > window.innerWidth")
+        overflow_elements = mobile.evaluate(
+            """[...document.querySelectorAll('*')]
+              .filter((element) => element.getBoundingClientRect().right > window.innerWidth)
+              .map((element) => `${element.tagName}.${element.className}`)
+              .slice(0, 10)"""
+        )
+        assert not has_overflow, f"Mobile layout overflow: {overflow_elements}"
 
         browser.close()
 

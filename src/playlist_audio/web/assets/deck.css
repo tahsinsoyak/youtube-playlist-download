@@ -301,7 +301,8 @@ progress {
 }
 
 progress::-webkit-progress-bar { background: #312d25; }
-progress::-webkit-progress-value, progress::-moz-progress-bar { background: var(--signal); }
+progress::-webkit-progress-value { background: var(--signal); }
+progress::-moz-progress-bar { background: var(--signal); }
 
 @keyframes deck-in {
   from { opacity: 0; transform: translateY(24px) rotate(0.6deg); }

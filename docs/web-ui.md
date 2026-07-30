@@ -31,11 +31,28 @@ Sunucuyu kapatmak için çalıştığı terminalde `Ctrl+C` kullanın.
    seçin.
 4. Çıktı klasörünü belirleyin.
 5. `Güvenli önizleme` açıkken hak onayını işaretleyip başlatın.
-6. Önizleme tamamlanınca düğme MP3 indirme moduna geçer.
-7. Düğmeye tekrar basarak gerçek indirmeyi başlatın.
+6. Önizleme tamamlanınca `Güvenli önizleme`yi kapatın.
+7. Düğmeye basarak gerçek indirmeyi başlatın.
 
 İnce ayarlar bölümünden MP3 kalitesi, playlist sırası, browser profili, kapak
 ve metadata ayarları değiştirilebilir.
+
+## Kuyruk ve canlı ilerleme
+
+Bir indirme sürerken URL alanına başka bir playlist yapıştırıp düğmeye tekrar
+basabilirsiniz. Yeni iş devam eden indirmeyi kesmez; kuyruğun sonuna eklenir.
+İşler aynı çıktı klasörünü güvenle paylaşabilsin diye sırayla çalıştırılır.
+
+Canlı panel şu bilgileri gösterir:
+
+- Playlist genel ilerlemesi ve mevcut parça sırası
+- Anlık indirme hızı (`KB/s` veya `MB/s`)
+- Mevcut parçanın indirilen ve tahmini toplam boyutu
+- yt-dlp tarafından hesaplanan tahmini kalan süre
+- Bekleyen iş sayısı ve FIFO kuyruk sırası
+
+Kuyruk uygulama belleğindedir. Sunucuyu kapatmak bekleyen işleri siler; bitmiş
+MP3 dosyaları ve indirme arşivi etkilenmez.
 
 ## Güvenlik sınırları
 
@@ -43,7 +60,7 @@ ve metadata ayarları değiştirilebilir.
 - LAN veya internete yayınlama seçeneği yoktur.
 - POST istekleri aynı host/origin ve `application/json` koşullarıyla kabul
   edilir.
-- Aynı anda yalnızca bir indirme işi çalışabilir.
+- Aynı anda yalnızca bir indirme çalışır; diğer işler yerel FIFO kuyruğunda bekler.
 - UI kaynak URL’yi iş durumu yanıtlarında geri göndermez.
 - Parola, cookie dosyası veya API anahtarı alınmaz.
 - Uzak CDN, font veya JavaScript kullanılmaz.
@@ -62,5 +79,5 @@ uv run python scripts/ui_smoke_test.py
 ```
 
 Smoke test, UI sunucusunun `127.0.0.1:8765` üzerinde çalıştığını varsayar.
-Desktop/mobile yerleşimi, form davranışı, gerçek `dry-run` ve browser konsolu
-kontrol edilir.
+Desktop/mobile yerleşimi, kuyruk ve hız metrikleri, form davranışı, gerçek
+`dry-run` ve browser konsolu kontrol edilir.

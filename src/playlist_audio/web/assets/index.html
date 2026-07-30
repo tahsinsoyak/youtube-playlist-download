@@ -11,8 +11,9 @@
     <title>Playlist Audio — Local Deck</title>
     <link rel="stylesheet" href="/assets/base.css">
     <link rel="stylesheet" href="/assets/deck.css">
+    <link rel="stylesheet" href="/assets/queue.css">
     <link rel="stylesheet" href="/assets/responsive.css">
-    <script src="/assets/app.js" defer></script>
+    <script src="/assets/app.js" type="module"></script>
   </head>
   <body>
     <div class="grain" aria-hidden="true"></div>
@@ -178,6 +179,9 @@
             <span id="button-label">Önizlemeyi başlat</span>
             <span class="button-icon" aria-hidden="true">↘</span>
           </button>
+          <small class="queue-help">
+            Yeni işler devam eden indirmeyi kesmeden sıraya eklenir.
+          </small>
         </form>
 
         <section class="job-status" id="job-status" aria-live="polite" hidden>
@@ -195,6 +199,35 @@
             <small id="job-item"></small>
           </div>
           <progress id="job-progress" max="100" value="0"></progress>
+          <div class="job-metrics" id="job-metrics">
+            <div>
+              <span>PARÇA</span>
+              <strong id="metric-track">—</strong>
+            </div>
+            <div>
+              <span>HIZ</span>
+              <strong id="metric-speed">—</strong>
+            </div>
+            <div>
+              <span>AKTARILAN</span>
+              <strong id="metric-bytes">—</strong>
+            </div>
+            <div>
+              <span>KALAN</span>
+              <strong id="metric-eta">—</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="queue-panel" id="queue-panel" aria-labelledby="queue-title" hidden>
+          <header>
+            <div>
+              <p class="deck-kicker">NEXT CHANNEL</p>
+              <h3 id="queue-title">İndirme kuyruğu</h3>
+            </div>
+            <span class="queue-count" id="queue-count">0 bekliyor</span>
+          </header>
+          <ol class="queue-list" id="queue-list"></ol>
         </section>
       </section>
     </main>

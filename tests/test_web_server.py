@@ -17,6 +17,14 @@ class FakeManager:
     def create(self, request) -> dict[str, Any]:
         return {"id": "new-job", "state": "queued", "dry_run": request.dry_run}
 
+    def snapshot(self) -> dict[str, Any]:
+        return {
+            "active": None,
+            "queued": [],
+            "recent": [],
+            "counts": {"running": 0, "queued": 0},
+        }
+
 
 @contextmanager
 def running_server():
@@ -40,6 +48,9 @@ def test_serves_ui_health_and_security_headers() -> None:
 
         with urlopen(f"{base_url}/api/health", timeout=2) as response:
             assert json.load(response)["scope"] == "localhost"
+
+        with urlopen(f"{base_url}/api/jobs", timeout=2) as response:
+            assert json.load(response)["counts"]["queued"] == 0
 
 
 def test_accepts_same_origin_json_job() -> None:

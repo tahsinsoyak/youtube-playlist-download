@@ -6,7 +6,9 @@
 UI girdisi
   -> web/handler.py     Loopback HTTP ve güvenlik başlıkları
   -> web/request_parser.py  JSON doğrulama
-  -> web/jobs.py        Tek arka plan işi ve ilerleme
+  -> web/jobs.py        Tek çalışanlı FIFO iş kuyruğu
+  -> web/job_state.py   API'ye açılan güvenli iş durumu
+  -> web/progress.py    Hız, ETA ve playlist ilerleme hesabı
   -> web/assets/        HTML, CSS ve JavaScript
 
 CLI veya doğrulanmış UI isteği
@@ -52,6 +54,7 @@ uv run playwright install chromium
   cookie entegrasyonu için.
 - Cookie dosyası yok: yanlışlıkla Git'e ekleme ve paylaşma riskini azaltmak için.
 - Arşiv dosyası: büyük playlistlerde güvenli, tekrar çalıştırılabilir indirmeler.
+- Tek çalışanlı kuyruk: yeni playlistleri kabul ederken çıktı çakışmasını önlemek.
 - Zorunlu hak onayı: public dağıtıma uygun sorumlu kullanım sınırı.
 
 ## Gelecek geliştirmeler

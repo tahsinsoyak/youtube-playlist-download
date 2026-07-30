@@ -1,0 +1,121 @@
+.queue-help {
+  margin-top: -9px;
+  color: #7f796c;
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.job-metrics {
+  display: grid;
+  margin-top: 17px;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line);
+}
+
+.job-metrics > div {
+  min-width: 0;
+  padding: 14px 10px 0;
+}
+
+.job-metrics > div:first-child { padding-left: 0; }
+.job-metrics > div + div { border-left: 1px solid var(--line); }
+.job-metrics span, .job-metrics strong { display: block; }
+.job-metrics span {
+  color: #777165;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.job-metrics strong {
+  margin-top: 6px;
+  overflow: hidden;
+  color: var(--paper);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job-metrics > div:nth-child(2) strong { color: var(--acid); }
+
+.queue-panel {
+  margin-top: 16px;
+  padding: 17px 18px 7px;
+  border: 1px solid var(--line);
+  background: rgba(13, 12, 10, 0.54);
+}
+
+.queue-panel[hidden] { display: none; }
+.queue-panel header {
+  display: flex;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.queue-panel h3 {
+  margin: 5px 0 0;
+  font-family: var(--display-font);
+  font-size: 21px;
+  font-weight: 400;
+}
+
+.queue-count {
+  padding: 6px 8px;
+  border: 1px solid rgba(215, 250, 104, 0.28);
+  color: var(--acid);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.queue-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: queue-item;
+}
+
+.queue-list li {
+  display: grid;
+  padding: 12px 0;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  counter-increment: queue-item;
+}
+
+.queue-list li::before {
+  color: var(--signal);
+  content: counter(queue-item, decimal-leading-zero);
+  font: 15px var(--display-font);
+}
+
+.queue-list strong, .queue-list small { display: block; }
+.queue-list strong { font-size: 11px; }
+.queue-list small {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue-position {
+  color: #777165;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 620px) {
+  .job-metrics { grid-template-columns: 1fr 1fr; }
+  .job-metrics > div { padding-block: 12px; }
+  .job-metrics > div:nth-child(3) { padding-left: 0; border-left: 0; }
+  .job-metrics > div:nth-child(n + 3) { border-top: 1px solid var(--line); }
+}

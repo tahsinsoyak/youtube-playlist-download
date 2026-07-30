@@ -8,7 +8,7 @@ from importlib.resources import files
 from typing import Any
 from urllib.parse import urlsplit
 
-from playlist_audio.web.jobs import JobConflict, JobManager
+from playlist_audio.web.jobs import JobManager
 from playlist_audio.web.request_parser import RequestError, parse_download_request
 
 MAX_BODY_BYTES = 64 * 1024
@@ -27,6 +27,8 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
                 self._serve_asset("index.html", "text/html; charset=utf-8")
             elif path == "/api/health":
                 self._json(HTTPStatus.OK, {"status": "ok", "scope": "localhost"})
+            elif path == "/api/jobs":
+                self._json(HTTPStatus.OK, manager.snapshot())
             elif path.startswith("/api/jobs/"):
                 job_id = path.removeprefix("/api/jobs/")
                 job = manager.get(job_id)
@@ -73,8 +75,6 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
                 self._json(HTTPStatus.BAD_REQUEST, {"error": "Geçersiz JSON."})
             except RequestError as error:
                 self._json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
-            except JobConflict as error:
-                self._json(HTTPStatus.CONFLICT, {"error": str(error)})
             else:
                 self._json(HTTPStatus.ACCEPTED, job)
 

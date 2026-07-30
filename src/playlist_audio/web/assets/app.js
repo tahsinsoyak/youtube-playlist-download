@@ -1,23 +1,44 @@
+import { JobView } from "./job-view.js";
+
 const form = document.querySelector("#download-form");
 const browserSelect = document.querySelector("#browser");
 const browserProfile = document.querySelector("#browser-profile");
 const dryRun = document.querySelector("#dry-run");
 const submitButton = document.querySelector("#submit-button");
 const buttonLabel = document.querySelector("#button-label");
-const statusPanel = document.querySelector("#job-status");
-const jobState = document.querySelector("#job-state");
-const jobMessage = document.querySelector("#job-message");
-const jobItem = document.querySelector("#job-item");
-const jobProgress = document.querySelector("#job-progress");
-const jobPercent = document.querySelector("#job-percent");
 const healthBadge = document.querySelector("#health-badge");
+const jobView = new JobView();
 
 let pollTimer = null;
+let hasQueuedWork = false;
+let isSubmitting = false;
+
+function currentBrowser() {
+  const agent = navigator.userAgent;
+  if (agent.includes("Edg/")) return "edge";
+  if (agent.includes("Firefox/")) return "firefox";
+  if (agent.includes("OPR/")) return "opera";
+  if (agent.includes("Chrome/")) return "chrome";
+  return null;
+}
+
+function browserLabel(value) {
+  return browserSelect.querySelector(`option[value="${value}"]`)?.textContent || value;
+}
 
 function updateModeLabel() {
   const isPreview = dryRun.checked;
-  buttonLabel.textContent = isPreview ? "Önizlemeyi başlat" : "MP3 indirmeyi başlat";
   dryRun.closest(".toggle").querySelector("b").textContent = isPreview ? "Açık" : "Kapalı";
+
+  if (isSubmitting) {
+    buttonLabel.textContent = "Sıraya ekleniyor";
+  } else if (hasQueuedWork) {
+    buttonLabel.textContent = isPreview
+      ? "Önizlemeyi sıraya ekle"
+      : "Playlisti sıraya ekle";
+  } else {
+    buttonLabel.textContent = isPreview ? "Önizlemeyi başlat" : "MP3 indirmeyi başlat";
+  }
 }
 
 function updateBrowserProfile() {
@@ -27,83 +48,26 @@ function updateBrowserProfile() {
   }
 
   const browserHint = document.querySelector("#browser-hint");
+  const selected = browserSelect.value;
   const chromiumBrowsers = ["brave", "chrome", "chromium", "edge", "opera", "vivaldi"];
-  if (chromiumBrowsers.includes(browserSelect.value)) {
+  if (selected && selected === currentBrowser()) {
+    browserHint.textContent =
+      `Bu arayüz ${browserLabel(selected)}’da açık. Oturum kaynağı olarak ` +
+      "tamamen kapalı başka bir tarayıcı seçin.";
+  } else if (chromiumBrowsers.includes(selected)) {
     browserHint.textContent =
       "Windows’ta seçili tarayıcı tamamen kapalı olmalı; açıkken cookie kasası kilitlenir.";
-  } else if (browserSelect.value === "firefox") {
+  } else if (selected === "firefox") {
     browserHint.textContent = "Sorun yaşarsanız Firefox’u tamamen kapatıp yeniden deneyin.";
   } else {
     browserHint.textContent = "";
   }
 }
 
-function setBusy(busy) {
-  submitButton.disabled = busy;
-  form.querySelectorAll("input, select, summary").forEach((element) => {
-    if (element !== submitButton) {
-      element.toggleAttribute("aria-disabled", busy);
-    }
-  });
-}
-
-function showError(message) {
-  statusPanel.hidden = false;
-  statusPanel.dataset.state = "failed";
-  jobState.textContent = "HATA";
-  jobMessage.textContent = message;
-  jobItem.textContent = "Ayarları kontrol edip yeniden deneyin.";
-  jobProgress.removeAttribute("value");
-  jobPercent.textContent = "";
-  setBusy(false);
-}
-
-function renderJob(job) {
-  statusPanel.hidden = false;
-  statusPanel.dataset.state = job.state;
-  jobState.textContent = {
-    queued: "SIRADA",
-    running: job.dry_run ? "ÖNİZLEME" : "KAYIT",
-    completed: "TAMAMLANDI",
-    failed: "HATA",
-  }[job.state] || "İŞLENİYOR";
-  jobMessage.textContent = job.message;
-  jobItem.textContent = job.current_item || `Hedef: ${job.output}`;
-
-  if (typeof job.progress === "number") {
-    const rounded = Math.round(job.progress);
-    jobProgress.value = rounded;
-    jobPercent.textContent = `%${rounded}`;
-  } else {
-    jobProgress.removeAttribute("value");
-    jobPercent.textContent = "";
-  }
-
-  if (job.state === "completed" || job.state === "failed") {
-    window.clearTimeout(pollTimer);
-    setBusy(false);
-    if (job.state === "completed" && job.dry_run) {
-      dryRun.checked = false;
-      updateModeLabel();
-      buttonLabel.textContent = "Kontrol tamam — MP3 indir";
-    }
-  }
-}
-
-async function pollJob(jobId) {
-  try {
-    const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`);
-    const job = await response.json();
-    if (!response.ok) {
-      throw new Error(job.error || "İş durumu okunamadı.");
-    }
-    renderJob(job);
-    if (job.state === "queued" || job.state === "running") {
-      pollTimer = window.setTimeout(() => pollJob(jobId), 850);
-    }
-  } catch (error) {
-    showError(error.message);
-  }
+function setSubmitting(value) {
+  isSubmitting = value;
+  submitButton.disabled = value;
+  updateModeLabel();
 }
 
 function formPayload() {
@@ -122,18 +86,39 @@ function formPayload() {
   };
 }
 
+function schedulePoll() {
+  window.clearTimeout(pollTimer);
+  if (hasQueuedWork) {
+    pollTimer = window.setTimeout(refreshJobs, 700);
+  }
+}
+
+async function refreshJobs() {
+  try {
+    const response = await fetch("/api/jobs");
+    const snapshot = await response.json();
+    if (!response.ok) {
+      throw new Error(snapshot.error || "Kuyruk durumu okunamadı.");
+    }
+    hasQueuedWork = jobView.renderSnapshot(snapshot);
+    updateModeLabel();
+    schedulePoll();
+  } catch (error) {
+    jobView.showError(error.message);
+  }
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  window.clearTimeout(pollTimer);
-  setBusy(true);
-  statusPanel.hidden = false;
-  statusPanel.dataset.state = "queued";
-  jobState.textContent = "GÖNDERİLİYOR";
-  jobMessage.textContent = "Ayarlar doğrulanıyor";
-  jobItem.textContent = "";
-  jobProgress.removeAttribute("value");
-  jobPercent.textContent = "";
+  if (browserSelect.value && browserSelect.value === currentBrowser()) {
+    jobView.showError(
+      `Arayüz ${browserLabel(browserSelect.value)}’da açık olduğu için bu oturum ` +
+        "kilitli. Public playlist seçin veya tamamen kapalı başka bir tarayıcı kullanın.",
+    );
+    return;
+  }
 
+  setSubmitting(true);
   try {
     const response = await fetch("/api/jobs", {
       method: "POST",
@@ -142,12 +127,15 @@ form.addEventListener("submit", async (event) => {
     });
     const result = await response.json();
     if (!response.ok) {
-      throw new Error(result.error || "İş başlatılamadı.");
+      throw new Error(result.error || "İş sıraya eklenemedi.");
     }
-    renderJob(result);
-    pollJob(result.id);
+    form.querySelector("#url").value = "";
+    await refreshJobs();
+    form.querySelector("#url").focus();
   } catch (error) {
-    showError(error.message);
+    jobView.showError(error.message);
+  } finally {
+    setSubmitting(false);
   }
 });
 
@@ -156,9 +144,7 @@ dryRun.addEventListener("change", updateModeLabel);
 
 fetch("/api/health")
   .then(async (response) => {
-    if (!response.ok) {
-      throw new Error();
-    }
+    if (!response.ok) throw new Error();
     await response.json();
     healthBadge.dataset.connected = "true";
   })
@@ -168,3 +154,4 @@ fetch("/api/health")
 
 updateBrowserProfile();
 updateModeLabel();
+refreshJobs();
