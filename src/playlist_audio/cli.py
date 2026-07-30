@@ -68,6 +68,31 @@ def doctor() -> None:
         raise typer.Exit(code=1)
 
 
+@app.command("ui")
+def ui_command(
+    port: Annotated[
+        int,
+        typer.Option("--port", help="Yerel arayüz portu."),
+    ] = 8765,
+    no_open: Annotated[
+        bool,
+        typer.Option("--no-open", help="Tarayıcıyı otomatik açma."),
+    ] = False,
+) -> None:
+    """Hafif yerel web arayüzünü başlatır."""
+    if not 1024 <= port <= 65535:
+        console.print("[red]Port 1024 ile 65535 arasında olmalıdır.[/red]")
+        raise typer.Exit(code=2)
+
+    from playlist_audio.web.server import run_ui
+
+    try:
+        run_ui(port=port, open_browser=not no_open)
+    except OSError as error:
+        console.print(f"[red]Arayüz başlatılamadı:[/red] {error}")
+        raise typer.Exit(code=1) from error
+
+
 @app.command("download")
 def download_command(
     url: Annotated[str, typer.Argument(help="YouTube video veya playlist URL'si.")],

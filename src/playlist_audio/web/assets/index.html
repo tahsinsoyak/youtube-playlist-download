@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta
+      name="description"
+      content="İzinli YouTube playlistlerini yerel bilgisayarınızda MP3 olarak arşivleyin."
+    >
+    <title>Playlist Audio — Local Deck</title>
+    <link rel="stylesheet" href="/assets/base.css">
+    <link rel="stylesheet" href="/assets/deck.css">
+    <link rel="stylesheet" href="/assets/responsive.css">
+    <script src="/assets/app.js" defer></script>
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Playlist Audio ana sayfa">
+        <span class="brand-mark" aria-hidden="true">PA</span>
+        <span>
+          <strong>Playlist Audio</strong>
+          <small>Local Deck / 01</small>
+        </span>
+      </a>
+      <div class="local-badge" id="health-badge">
+        <span class="status-led" aria-hidden="true"></span>
+        <span>Yalnızca bu cihaz</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">PRIVATE PLAYLIST · LOCAL ARCHIVE</p>
+        <h1 id="page-title">Playlist’ini<br><em>rafına indir.</em></h1>
+        <p class="lede">
+          URL’yi yapıştır. Önce erişimi kontrol et, sonra yüksek kaliteli
+          MP3 arşivini oluştur. Oturumun bu bilgisayardan çıkmaz.
+        </p>
+
+        <div class="signal-card" aria-label="İşlem özellikleri">
+          <div>
+            <span class="signal-number">01</span>
+            <p>En iyi ses akışı</p>
+          </div>
+          <div>
+            <span class="signal-number">V0</span>
+            <p>Yüksek kalite MP3</p>
+          </div>
+          <div>
+            <span class="signal-number">ID3</span>
+            <p>Kapak + metadata</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="deck" aria-labelledby="deck-title">
+        <div class="deck-header">
+          <div>
+            <p class="deck-kicker">INPUT CHANNEL</p>
+            <h2 id="deck-title">Yeni arşiv işi</h2>
+          </div>
+          <div class="deck-screws" aria-hidden="true"><i></i><i></i></div>
+        </div>
+
+        <form id="download-form">
+          <label class="field field-url" for="url">
+            <span>Playlist veya video URL’si</span>
+            <input
+              id="url"
+              name="url"
+              type="url"
+              inputmode="url"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="https://www.youtube.com/playlist?list=…"
+              required
+            >
+          </label>
+
+          <div class="field-grid">
+            <label class="field" for="browser">
+              <span>Oturum kaynağı</span>
+              <select id="browser" name="browser">
+                <option value="">Public playlist</option>
+                <option value="firefox">Firefox</option>
+                <option value="chrome">Chrome</option>
+                <option value="edge">Edge</option>
+                <option value="brave">Brave</option>
+                <option value="chromium">Chromium</option>
+                <option value="opera">Opera</option>
+                <option value="vivaldi">Vivaldi</option>
+              </select>
+            </label>
+
+            <label class="field" for="output">
+              <span>Çıktı klasörü</span>
+              <input id="output" name="output" type="text" value="downloads" required>
+            </label>
+          </div>
+
+          <div class="mode-switch">
+            <div>
+              <strong>Güvenli önizleme</strong>
+              <small>Dosya yazmadan playlist erişimini kontrol eder.</small>
+            </div>
+            <label class="toggle" for="dry-run">
+              <input id="dry-run" name="dry_run" type="checkbox" checked>
+              <span aria-hidden="true"></span>
+              <b>Açık</b>
+            </label>
+          </div>
+
+          <details>
+            <summary>
+              <span>İnce ayarlar</span>
+              <small>Kalite, sıra ve etiketler</small>
+            </summary>
+            <div class="advanced-grid">
+              <label class="field" for="quality">
+                <span>MP3 VBR kalitesi</span>
+                <select id="quality" name="audio_quality">
+                  <option value="0">0 — En iyi</option>
+                  <option value="1">1 — Çok yüksek</option>
+                  <option value="2">2 — Yüksek</option>
+                  <option value="5">5 — Orta</option>
+                </select>
+              </label>
+
+              <label class="field" for="playlist-items">
+                <span>Playlist sırası</span>
+                <input
+                  id="playlist-items"
+                  name="playlist_items"
+                  type="text"
+                  placeholder="Tümü veya 1:10"
+                >
+              </label>
+
+              <label class="field field-wide" for="browser-profile">
+                <span>Tarayıcı profili <small>(isteğe bağlı)</small></span>
+                <input
+                  id="browser-profile"
+                  name="browser_profile"
+                  type="text"
+                  placeholder="default-release"
+                  disabled
+                >
+              </label>
+
+              <div class="check-row field-wide">
+                <label>
+                  <input name="embed_thumbnail" type="checkbox" checked>
+                  <span>Kapak görseli</span>
+                </label>
+                <label>
+                  <input name="embed_metadata" type="checkbox" checked>
+                  <span>Medya metadata’sı</span>
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <label class="rights-check" for="confirm-rights">
+            <input id="confirm-rights" name="confirm_rights" type="checkbox" required>
+            <span>
+              Bu içeriği indirme ve dönüştürme hakkım olduğunu onaylıyorum.
+              <a href="https://www.youtube.com/static?template=terms" target="_blank" rel="noreferrer">
+                Kullanım sınırları
+              </a>
+            </span>
+          </label>
+
+          <button class="primary-action" id="submit-button" type="submit">
+            <span id="button-label">Önizlemeyi başlat</span>
+            <span class="button-icon" aria-hidden="true">↘</span>
+          </button>
+        </form>
+
+        <section class="job-status" id="job-status" aria-live="polite" hidden>
+          <div class="tape-window" aria-hidden="true">
+            <i class="reel reel-left"></i>
+            <span class="tape-line"></span>
+            <i class="reel reel-right"></i>
+          </div>
+          <div class="job-copy">
+            <div>
+              <span class="job-state" id="job-state">HAZIRLANIYOR</span>
+              <span class="job-percent" id="job-percent"></span>
+            </div>
+            <strong id="job-message">Playlist kontrol ediliyor</strong>
+            <small id="job-item"></small>
+          </div>
+          <progress id="job-progress" max="100" value="0"></progress>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <p>LOCALHOST · COOKIE DOSYASI YOK · PAROLA YOK</p>
+      <p>Motor: yt-dlp + FFmpeg</p>
+    </footer>
+  </body>
+</html>

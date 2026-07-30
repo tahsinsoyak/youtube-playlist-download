@@ -1,0 +1,193 @@
+:root {
+  --ink: #151411;
+  --panel: #29261f;
+  --paper: #eee7d6;
+  --muted: #aaa493;
+  --acid: #d7fa68;
+  --signal: #ff6541;
+  --line: rgba(238, 231, 214, 0.16);
+  --shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+  --body-font: "Bahnschrift", "Aptos", "Segoe UI Variable", sans-serif;
+  --display-font: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  min-width: 320px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--body-font);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 101, 65, 0.14), transparent 25rem),
+    linear-gradient(145deg, #1b1915 0%, var(--ink) 55%, #0d0c0b 100%);
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background-image:
+    linear-gradient(rgba(238, 231, 214, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(238, 231, 214, 0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black, transparent 90%);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.11;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E");
+}
+
+.topbar {
+  display: flex;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 26px 0;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--paper);
+  color: var(--acid);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  transform: rotate(-3deg);
+}
+
+.brand strong, .brand small { display: block; }
+.brand strong { font-size: 15px; letter-spacing: 0.03em; }
+.brand small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.local-badge {
+  display: flex;
+  gap: 9px;
+  padding: 9px 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.status-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--signal);
+}
+
+.local-badge[data-connected="true"] .status-led {
+  background: var(--acid);
+  box-shadow: 0 0 12px rgba(215, 250, 104, 0.8);
+}
+
+main {
+  display: grid;
+  width: min(1180px, calc(100% - 48px));
+  margin: 70px auto 54px;
+  grid-template-columns: minmax(0, 0.85fr) minmax(500px, 1.15fr);
+  gap: 72px;
+  align-items: start;
+}
+
+.intro { position: sticky; top: 44px; padding-top: 22px; }
+.eyebrow, .deck-kicker {
+  margin: 0;
+  color: var(--signal);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+h1 {
+  margin: 28px 0 24px;
+  font-family: var(--display-font);
+  font-size: clamp(64px, 7.6vw, 108px);
+  font-weight: 400;
+  letter-spacing: -0.065em;
+  line-height: 0.79;
+}
+
+h1 em { color: var(--acid); font-weight: 400; }
+
+.lede {
+  max-width: 520px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.signal-card {
+  display: grid;
+  margin-top: 48px;
+  grid-template-columns: repeat(3, 1fr);
+  border-block: 1px solid var(--line);
+}
+
+.signal-card > div { padding: 22px 14px 20px 0; }
+.signal-card > div + div {
+  padding-left: 18px;
+  border-left: 1px solid var(--line);
+}
+
+.signal-number {
+  color: var(--paper);
+  font-family: var(--display-font);
+  font-size: 26px;
+}
+
+.signal-card p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+footer {
+  display: flex;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 22px 0 34px;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  color: #777165;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}

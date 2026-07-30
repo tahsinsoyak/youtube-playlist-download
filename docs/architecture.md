@@ -3,7 +3,13 @@
 ## Bileşenler
 
 ```text
-CLI girdisi
+UI girdisi
+  -> web/handler.py     Loopback HTTP ve güvenlik başlıkları
+  -> web/request_parser.py  JSON doğrulama
+  -> web/jobs.py        Tek arka plan işi ve ilerleme
+  -> web/assets/        HTML, CSS ve JavaScript
+
+CLI veya doğrulanmış UI isteği
   -> validation.py     URL ve seçenek doğrulama
   -> models.py         Değişmez istek modeli
   -> options.py        yt-dlp seçenek üretimi
@@ -26,6 +32,7 @@ iletilir. Uygulama cookie içeriğini doğrudan okumaz, yazmaz veya loglamaz.
 - `src/playlist_audio/downloader.py`: dosya sistemi ve yt-dlp yan etkileri
 - `src/playlist_audio/preflight.py`: yerel araç tanılama
 - `src/playlist_audio/runtime.py`: desteklenen JavaScript runtime seçimi
+- `src/playlist_audio/web/`: localhost UI, API, iş durumu ve statik varlıklar
 - `tests/`: ağ erişimi olmadan birim testleri
 
 ## Geliştirme kurulumu
@@ -35,11 +42,12 @@ uv sync --extra dev
 uv run pytest
 uv run ruff check .
 uv run ruff format --check .
+uv run playwright install chromium
 ```
 
 ## Tasarım kararları
 
-- Web uygulaması yerine CLI: oturum verisini uzak sunucuya taşımamak için.
+- Yalnızca localhost web UI: oturum verisini uzak sunucuya taşımamak için.
 - `youtube-dl` yerine `yt-dlp`: aktif bakım, modern YouTube desteği ve tarayıcı
   cookie entegrasyonu için.
 - Cookie dosyası yok: yanlışlıkla Git'e ekleme ve paylaşma riskini azaltmak için.
@@ -48,7 +56,6 @@ uv run ruff format --check .
 
 ## Gelecek geliştirmeler
 
-- Yerel-only web arayüzü
 - M4A/Opus gibi yeniden kodlama gerektirmeyen çıktı seçenekleri
 - Playlist manifesti ve değişiklik raporu
 - MP3 etiketlerini etkileşimli düzeltme

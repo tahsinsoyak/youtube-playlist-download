@@ -9,6 +9,7 @@ uv sync --extra dev
 uv run ruff check .
 uv run ruff format --check .
 uv run pytest --cov=playlist_audio
+uv run playwright install chromium
 ```
 
 ## Kapsam

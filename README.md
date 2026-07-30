@@ -9,15 +9,30 @@ yüksek kaliteli MP3 dosyaları olarak yerel bilgisayarınızda arşivleyen,
 > tasarlanmamıştır. Yalnızca size ait, hak sahibinden izin aldığınız ya da
 > yürürlükteki hukukun indirmeye izin verdiği içeriklerde kullanın.
 
-## Neden CLI?
+## Hafif yerel arayüz
+
+Kurulumdan sonra tek komut:
+
+```powershell
+uv run playlist-audio ui
+```
+
+Tarayıcı otomatik olarak `http://127.0.0.1:8765` adresinde açılır. URL’yi
+yapıştırın, private playlist için tarayıcıyı seçin ve önce güvenli önizlemeyi
+çalıştırın. CLI kullanmak zorunda değilsiniz; mevcut CLI otomasyon ve gelişmiş
+kullanım için korunur.
+
+## Neden localhost?
 
 Private playlist erişimi, oturum açılmış tarayıcının çerezlerini gerektirir.
-CLI yaklaşımında Google oturumunuz kendi cihazınızdan çıkmaz ve hiçbir uzak
-sunucuda saklanmaz. Proje çerezleri dışa aktarmaz veya diske yazmaz.
+Arayüz yalnızca `127.0.0.1` adresine bağlanır; Google oturumunuz kendi
+cihazınızdan çıkmaz ve hiçbir uzak sunucuda saklanmaz. Proje çerezleri dışa
+aktarmaz veya diske yazmaz.
 
 ## Özellikler
 
 - Public, unlisted ve erişim yetkiniz olan private playlist desteği
+- Framework gerektirmeyen hafif localhost web arayüzü
 - En iyi mevcut ses akışını MP3'e dönüştürme
 - En yüksek FFmpeg VBR kalitesi (`0`) varsayılanı
 - Kapak görseli ve medya metadata'sı
@@ -43,9 +58,12 @@ git clone https://github.com/tahsinsoyak/youtube-private-list-downloader.git
 cd youtube-private-list-downloader
 uv sync
 uv run playlist-audio doctor
+uv run playlist-audio ui
 ```
 
-Public playlist önizlemesi:
+Arayüz tarayıcıyı otomatik açmazsa `http://127.0.0.1:8765` adresine gidin.
+
+CLI ile public playlist önizlemesi:
 
 ```powershell
 uv run playlist-audio download "PLAYLIST_URL" --dry-run --confirm-rights
@@ -70,6 +88,7 @@ uv run playlist-audio download "PLAYLIST_URL" `
 ## Dokümantasyon
 
 - [Kullanım ve tüm seçenekler](docs/usage.md)
+- [Yerel web arayüzü](docs/web-ui.md)
 - [Private playlist erişimi](docs/private-playlists.md)
 - [Kalite ve dosya formatı](docs/audio-quality.md)
 - [Sorun giderme](docs/troubleshooting.md)

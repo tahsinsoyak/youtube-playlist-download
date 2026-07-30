@@ -9,6 +9,7 @@ htmlcov/
 dist/
 build/
 uv.lock
+test-results/
 
 # Downloaded media and local state
 downloads/

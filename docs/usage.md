@@ -2,6 +2,16 @@
 
 ## Komutlar
 
+### Yerel web arayüzü
+
+```powershell
+uv run playlist-audio ui
+```
+
+Günlük kullanım için önerilen yöntemdir. Tarayıcı otomatik açılır; CLI
+seçeneklerinin önemli bölümü form üzerinden kullanılabilir. Ayrıntılar:
+[Yerel web arayüzü](web-ui.md).
+
 ### Sistem kontrolü
 
 ```powershell

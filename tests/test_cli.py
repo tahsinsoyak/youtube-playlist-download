@@ -15,6 +15,7 @@ def test_help_exposes_expected_commands() -> None:
     assert result.exit_code == 0
     assert "download" in result.stdout
     assert "doctor" in result.stdout
+    assert "ui" in result.stdout
 
 
 def test_download_requires_rights_confirmation() -> None:
@@ -55,3 +56,11 @@ def test_rejects_non_youtube_url() -> None:
 
     assert result.exit_code == 2
     assert "Geçersiz seçenek" in result.stdout
+
+
+def test_ui_command_starts_local_server_without_opening_browser() -> None:
+    with patch("playlist_audio.web.server.run_ui") as mocked_run_ui:
+        result = runner.invoke(app, ["ui", "--port", "8765", "--no-open"])
+
+    assert result.exit_code == 0
+    mocked_run_ui.assert_called_once_with(port=8765, open_browser=False)

@@ -5,6 +5,10 @@
 Bu proje Google parolası, cookie dosyası veya API anahtarı istemez. Böyle bir
 veriyi issue, pull request, ekran görüntüsü veya hata kaydında paylaşmayın.
 
+Web arayüzü yalnızca `127.0.0.1` adresinde çalışacak şekilde tasarlanmıştır.
+Reverse proxy, port forwarding veya kaynak kod değişikliğiyle internete
+açılması desteklenmez.
+
 Private playlist URL'leri ve video kimlikleri de hassas kabul edilmelidir.
 Raporlamadan önce bunları `[REDACTED]` ile değiştirin.
 
