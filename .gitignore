@@ -1,0 +1,31 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+uv.lock
+
+# Downloaded media and local state
+downloads/
+*.mp3
+*.part
+*.ytdl
+.playlist-audio-archive.txt
+
+# Authentication material must never be committed
+cookies.txt
+*cookies*.txt
+*.netrc
+.env
+.env.*
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
