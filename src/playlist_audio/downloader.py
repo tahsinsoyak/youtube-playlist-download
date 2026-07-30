@@ -1,6 +1,7 @@
 """Small yt-dlp adapter so the CLI remains easy to test."""
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,35 @@ from playlist_audio.options import build_ydl_options
 
 class DownloadFailed(RuntimeError):
     """User-facing download failure."""
+
+
+@dataclass(frozen=True, slots=True)
+class DownloadOutcome:
+    """Summarize accessible and skipped items without exposing their URLs."""
+
+    total_items: int
+    available_items: int
+    unavailable_items: int
+
+
+def _summarize_info(info: dict[str, Any] | None) -> DownloadOutcome:
+    if not info:
+        raise DownloadFailed("Erişilebilir bir video veya playlist öğesi bulunamadı.")
+
+    entries = info.get("entries")
+    if entries is None:
+        return DownloadOutcome(total_items=1, available_items=1, unavailable_items=0)
+
+    resolved_entries = list(entries)
+    available = sum(item is not None for item in resolved_entries)
+    unavailable = len(resolved_entries) - available
+    if available == 0:
+        raise DownloadFailed("Playlist içinde erişilebilir bir öğe bulunamadı.")
+    return DownloadOutcome(
+        total_items=len(resolved_entries),
+        available_items=available,
+        unavailable_items=unavailable,
+    )
 
 
 def _browser_session_error(request: DownloadRequest) -> str:
@@ -41,7 +71,7 @@ def _browser_session_error(request: DownloadRequest) -> str:
 def download(
     request: DownloadRequest,
     progress_hook: Callable[[dict[str, Any]], None] | None = None,
-) -> None:
+) -> DownloadOutcome:
     """Create output directories and execute one yt-dlp run."""
     request.output_dir.mkdir(parents=True, exist_ok=True)
     request.archive_file.parent.mkdir(parents=True, exist_ok=True)
@@ -51,16 +81,13 @@ def download(
 
     try:
         with YoutubeDL(options) as ydl:
-            return_code = ydl.download([request.url])
+            info = ydl.extract_info(request.url, download=True)
     except (CookieLoadError, PermissionError) as error:
         raise DownloadFailed(_browser_session_error(request)) from error
     except DownloadError as error:
         raise DownloadFailed(str(error)) from error
 
-    if return_code:
-        raise DownloadFailed(
-            "Bazı öğeler indirilemedi. Ayrıntılar için yukarıdaki yt-dlp çıktısını inceleyin."
-        )
+    return _summarize_info(info)
 
 
 def output_location(request: DownloadRequest) -> Path:

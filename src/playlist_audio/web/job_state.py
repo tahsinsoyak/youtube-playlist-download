@@ -30,6 +30,8 @@ class Job:
     eta: int | None = None
     item_index: int | None = None
     item_count: int | None = None
+    available_items: int | None = None
+    unavailable_items: int = 0
     created_at: str = field(default_factory=now_iso)
     started_at: str | None = None
     finished_at: str | None = None
@@ -50,6 +52,8 @@ class Job:
             "eta": self.eta,
             "item_index": self.item_index,
             "item_count": self.item_count,
+            "available_items": self.available_items,
+            "unavailable_items": self.unavailable_items,
             "queue_position": queue_position,
             "dry_run": self.request.dry_run,
             "output": str(self.request.output_dir.resolve()),

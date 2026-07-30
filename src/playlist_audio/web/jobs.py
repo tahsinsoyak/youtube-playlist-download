@@ -106,7 +106,10 @@ class JobManager:
         self._update(job_id, state="running", message=initial, started_at=now_iso())
 
         try:
-            download(request, progress_hook=lambda event: self._progress_hook(job_id, event))
+            outcome = download(
+                request,
+                progress_hook=lambda event: self._progress_hook(job_id, event),
+            )
         except DownloadFailed as error:
             self._update(
                 job_id,
@@ -130,6 +133,11 @@ class JobManager:
             )
         else:
             message = "Önizleme tamamlandı" if request.dry_run else "İndirme tamamlandı"
+            if outcome and outcome.unavailable_items:
+                message = (
+                    f"{message} · {outcome.available_items} erişilebilir, "
+                    f"{outcome.unavailable_items} kullanılamayan öğe atlandı"
+                )
             self._update(
                 job_id,
                 state="completed",
@@ -137,6 +145,8 @@ class JobManager:
                 progress=100,
                 speed=None,
                 eta=0,
+                available_items=outcome.available_items if outcome else None,
+                unavailable_items=outcome.unavailable_items if outcome else 0,
                 finished_at=now_iso(),
             )
 

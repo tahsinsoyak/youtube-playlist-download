@@ -3,6 +3,7 @@ from threading import Event
 from time import monotonic, sleep
 from unittest.mock import patch
 
+from playlist_audio.downloader import DownloadOutcome
 from playlist_audio.models import DownloadRequest
 from playlist_audio.web.jobs import JobManager
 
@@ -19,7 +20,7 @@ def make_request(tmp_path: Path) -> DownloadRequest:
 def test_job_completes_without_exposing_source_url(tmp_path: Path) -> None:
     finished = Event()
 
-    def fake_download(request, progress_hook=None) -> None:
+    def fake_download(request, progress_hook=None) -> DownloadOutcome:
         if progress_hook:
             progress_hook(
                 {
@@ -37,6 +38,7 @@ def test_job_completes_without_exposing_source_url(tmp_path: Path) -> None:
                 }
             )
         finished.set()
+        return DownloadOutcome(total_items=4, available_items=3, unavailable_items=1)
 
     manager = JobManager()
     with patch("playlist_audio.web.jobs.download", side_effect=fake_download):
@@ -49,6 +51,9 @@ def test_job_completes_without_exposing_source_url(tmp_path: Path) -> None:
     assert result["progress"] == 100
     assert result["playlist_title"] == "Test playlist"
     assert result["downloaded_bytes"] == 50
+    assert result["available_items"] == 3
+    assert result["unavailable_items"] == 1
+    assert "1 kullanılamayan öğe atlandı" in result["message"]
     assert "url" not in result
 
 

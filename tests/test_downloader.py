@@ -17,14 +17,19 @@ def test_download_creates_state_directories_and_calls_yt_dlp(tmp_path: Path) -> 
     )
     ydl = MagicMock()
     ydl.__enter__.return_value = ydl
-    ydl.download.return_value = 0
+    ydl.extract_info.return_value = {
+        "_type": "playlist",
+        "entries": [{"id": "one"}, {"id": "two"}],
+    }
 
     with patch("playlist_audio.downloader.YoutubeDL", return_value=ydl):
-        download(request)
+        outcome = download(request)
 
     assert request.output_dir.is_dir()
     assert request.archive_file.parent.is_dir()
-    ydl.download.assert_called_once_with([request.url])
+    ydl.extract_info.assert_called_once_with(request.url, download=True)
+    assert outcome.available_items == 2
+    assert outcome.unavailable_items == 0
 
 
 def test_download_attaches_progress_hook(tmp_path: Path) -> None:
@@ -36,7 +41,7 @@ def test_download_attaches_progress_hook(tmp_path: Path) -> None:
     hook = MagicMock()
     ydl = MagicMock()
     ydl.__enter__.return_value = ydl
-    ydl.download.return_value = 0
+    ydl.extract_info.return_value = {"id": "abc123"}
 
     with patch("playlist_audio.downloader.YoutubeDL", return_value=ydl) as youtube_dl:
         download(request, progress_hook=hook)
@@ -54,10 +59,50 @@ def test_chrome_cookie_lock_has_actionable_error(tmp_path: Path) -> None:
     )
     ydl = MagicMock()
     ydl.__enter__.return_value = ydl
-    ydl.download.side_effect = CookieLoadError("failed to load cookies")
+    ydl.extract_info.side_effect = CookieLoadError("failed to load cookies")
 
     with (
         patch("playlist_audio.downloader.YoutubeDL", return_value=ydl),
         pytest.raises(DownloadFailed, match="cookie veritabanını kilitliyor"),
+    ):
+        download(request)
+
+
+def test_download_reports_unavailable_playlist_entries(tmp_path: Path) -> None:
+    request = DownloadRequest(
+        url="https://www.youtube.com/playlist?list=PL123",
+        output_dir=tmp_path,
+        archive_file=tmp_path / "archive.txt",
+        dry_run=True,
+    )
+    ydl = MagicMock()
+    ydl.__enter__.return_value = ydl
+    ydl.extract_info.return_value = {
+        "_type": "playlist",
+        "entries": [{"id": "one"}, None, {"id": "three"}],
+    }
+
+    with patch("playlist_audio.downloader.YoutubeDL", return_value=ydl):
+        outcome = download(request)
+
+    assert outcome.total_items == 3
+    assert outcome.available_items == 2
+    assert outcome.unavailable_items == 1
+
+
+def test_download_fails_when_no_playlist_entry_is_available(tmp_path: Path) -> None:
+    request = DownloadRequest(
+        url="https://www.youtube.com/playlist?list=PL123",
+        output_dir=tmp_path,
+        archive_file=tmp_path / "archive.txt",
+        dry_run=True,
+    )
+    ydl = MagicMock()
+    ydl.__enter__.return_value = ydl
+    ydl.extract_info.return_value = {"_type": "playlist", "entries": [None, None]}
+
+    with (
+        patch("playlist_audio.downloader.YoutubeDL", return_value=ydl),
+        pytest.raises(DownloadFailed, match="erişilebilir bir öğe bulunamadı"),
     ):
         download(request)

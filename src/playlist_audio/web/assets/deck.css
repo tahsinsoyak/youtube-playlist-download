@@ -279,6 +279,7 @@ details[open] summary::after { content: "−"; }
 }
 
 .job-status[data-state="completed"] .job-state { color: var(--acid); }
+.job-status[data-warning="true"] .job-state { color: #f7bd58; }
 .job-copy strong, .job-copy small { display: block; }
 .job-copy strong { margin-top: 7px; font-size: 14px; }
 .job-copy small {

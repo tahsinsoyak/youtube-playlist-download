@@ -26,6 +26,7 @@ export class JobView {
   showError(message) {
     this.statusPanel.hidden = false;
     this.statusPanel.dataset.state = "failed";
+    this.statusPanel.dataset.warning = "false";
     this.jobState.textContent = "HATA";
     this.jobMessage.textContent = message;
     this.jobItem.textContent = "Ayarları kontrol edip yeniden deneyin.";
@@ -51,11 +52,14 @@ export class JobView {
   _renderJob(job) {
     this.statusPanel.hidden = false;
     this.statusPanel.dataset.state = job.state;
+    this.statusPanel.dataset.warning = String(Boolean(job.unavailable_items));
     this.jobState.textContent =
       job.state === "running"
         ? job.dry_run
           ? "ÖNİZLEME"
           : "KAYIT"
+        : job.state === "completed" && job.unavailable_items
+          ? "TAMAMLANDI · UYARI"
         : STATE_LABELS[job.state] || "İŞLENİYOR";
     this.jobMessage.textContent = job.message;
     this.jobItem.textContent =

@@ -179,13 +179,18 @@ def download_command(
         console.print("[yellow]Önizleme modu: medya dosyası yazılmayacak.[/yellow]")
 
     try:
-        download(request)
+        outcome = download(request)
     except DownloadFailed as error:
         console.print(f"\n[red]İndirme tamamlanamadı:[/red] {error}")
         raise typer.Exit(code=1) from error
 
     action = "Önizleme tamamlandı" if dry_run else "İndirme tamamlandı"
     console.print(f"\n[green]{action}.[/green] Hedef: {output_location(request)}")
+    if outcome.unavailable_items:
+        console.print(
+            f"[yellow]{outcome.unavailable_items} kullanılamayan öğe atlandı; "
+            f"{outcome.available_items} öğe erişilebilir.[/yellow]"
+        )
 
 
 if __name__ == "__main__":

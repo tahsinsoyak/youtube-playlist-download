@@ -51,6 +51,10 @@ Canlı panel şu bilgileri gösterir:
 - yt-dlp tarafından hesaplanan tahmini kalan süre
 - Bekleyen iş sayısı ve FIFO kuyruk sırası
 
+Playlistte silinmiş veya bölgenizde kullanılamayan öğeler varsa erişilebilir
+öğeler işlenmeye devam eder. Sonuç paneli kaç öğenin erişilebilir olduğunu ve
+kaçının atlandığını uyarı olarak gösterir.
+
 Kuyruk uygulama belleğindedir. Sunucuyu kapatmak bekleyen işleri siler; bitmiş
 MP3 dosyaları ve indirme arşivi etkilenmez.
 
