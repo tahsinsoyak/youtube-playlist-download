@@ -74,6 +74,9 @@ def run() -> None:
         if page.locator("#job-state").text_content() == "HATA":
             raise AssertionError(page.locator("#job-message").text_content())
         expect(page.locator("#job-message")).to_have_text("Önizleme tamamlandı")
+        expect(page.locator("#url")).to_have_value("https://www.youtube.com/watch?v=YE7VzlLtp-4")
+        expect(dry_run).not_to_be_checked()
+        expect(button_label).to_have_text("Kontrol tamam — MP3 indir")
         page.screenshot(path=RESULTS_DIR / "ui-desktop.png", full_page=True)
 
         queue_snapshot = {

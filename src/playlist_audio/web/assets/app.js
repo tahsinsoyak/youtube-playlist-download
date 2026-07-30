@@ -1,6 +1,7 @@
 import { JobView } from "./job-view.js";
 
 const form = document.querySelector("#download-form");
+const urlInput = document.querySelector("#url");
 const browserSelect = document.querySelector("#browser");
 const browserProfile = document.querySelector("#browser-profile");
 const dryRun = document.querySelector("#dry-run");
@@ -12,6 +13,8 @@ const jobView = new JobView();
 let pollTimer = null;
 let hasQueuedWork = false;
 let isSubmitting = false;
+let pendingPreviewJobId = null;
+let previewReady = false;
 
 function currentBrowser() {
   const agent = navigator.userAgent;
@@ -36,6 +39,8 @@ function updateModeLabel() {
     buttonLabel.textContent = isPreview
       ? "Önizlemeyi sıraya ekle"
       : "Playlisti sıraya ekle";
+  } else if (previewReady && !isPreview) {
+    buttonLabel.textContent = "Kontrol tamam — MP3 indir";
   } else {
     buttonLabel.textContent = isPreview ? "Önizlemeyi başlat" : "MP3 indirmeyi başlat";
   }
@@ -100,6 +105,17 @@ async function refreshJobs() {
     if (!response.ok) {
       throw new Error(snapshot.error || "Kuyruk durumu okunamadı.");
     }
+    const previewJob = (snapshot.recent || []).find(
+      (job) => job.id === pendingPreviewJobId,
+    );
+    if (previewJob?.state === "completed") {
+      pendingPreviewJobId = null;
+      previewReady = true;
+      dryRun.checked = false;
+    } else if (previewJob?.state === "failed") {
+      pendingPreviewJobId = null;
+      previewReady = false;
+    }
     hasQueuedWork = jobView.renderSnapshot(snapshot);
     updateModeLabel();
     schedulePoll();
@@ -120,18 +136,26 @@ form.addEventListener("submit", async (event) => {
 
   setSubmitting(true);
   try {
+    const payload = formPayload();
     const response = await fetch("/api/jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formPayload()),
+      body: JSON.stringify(payload),
     });
     const result = await response.json();
     if (!response.ok) {
       throw new Error(result.error || "İş sıraya eklenemedi.");
     }
-    form.querySelector("#url").value = "";
+    if (payload.dry_run) {
+      pendingPreviewJobId = result.id;
+      previewReady = false;
+    } else {
+      pendingPreviewJobId = null;
+      previewReady = false;
+      urlInput.value = "";
+    }
     await refreshJobs();
-    form.querySelector("#url").focus();
+    urlInput.focus();
   } catch (error) {
     jobView.showError(error.message);
   } finally {
@@ -140,7 +164,17 @@ form.addEventListener("submit", async (event) => {
 });
 
 browserSelect.addEventListener("change", updateBrowserProfile);
-dryRun.addEventListener("change", updateModeLabel);
+dryRun.addEventListener("change", () => {
+  if (dryRun.checked) {
+    previewReady = false;
+  }
+  updateModeLabel();
+});
+urlInput.addEventListener("input", () => {
+  pendingPreviewJobId = null;
+  previewReady = false;
+  updateModeLabel();
+});
 
 fetch("/api/health")
   .then(async (response) => {

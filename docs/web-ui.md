@@ -31,8 +31,8 @@ Sunucuyu kapatmak için çalıştığı terminalde `Ctrl+C` kullanın.
    seçin.
 4. Çıktı klasörünü belirleyin.
 5. `Güvenli önizleme` açıkken hak onayını işaretleyip başlatın.
-6. Önizleme tamamlanınca `Güvenli önizleme`yi kapatın.
-7. Düğmeye basarak gerçek indirmeyi başlatın.
+6. Önizleme tamamlanınca URL korunur ve güvenli önizleme otomatik kapanır.
+7. `Kontrol tamam — MP3 indir` düğmesine basarak gerçek indirmeyi başlatın.
 
 İnce ayarlar bölümünden MP3 kalitesi, playlist sırası, browser profili, kapak
 ve metadata ayarları değiştirilebilir.
