@@ -29,13 +29,13 @@ def test_parses_private_preview_request() -> None:
 
 
 def test_requires_rights_confirmation() -> None:
-    with pytest.raises(RequestError, match="onaylamalısınız"):
+    with pytest.raises(RequestError, match="must confirm"):
         parse_download_request({**VALID_PAYLOAD, "confirm_rights": False})
 
 
 @pytest.mark.parametrize("playlist_items", ["all", "1;rm", "1 2"])
 def test_rejects_invalid_playlist_ranges(playlist_items: str) -> None:
-    with pytest.raises(RequestError, match="Playlist seçimi"):
+    with pytest.raises(RequestError, match="Playlist selection"):
         parse_download_request({**VALID_PAYLOAD, "playlist_items": playlist_items})
 
 

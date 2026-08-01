@@ -1,59 +1,67 @@
 # YouTube Playlist Download
 
-Kendinize ait veya indirme izniniz bulunan YouTube video ve playlistlerini
-yüksek kaliteli MP3 dosyaları olarak yerel bilgisayarınızda arşivleyen,
-[`yt-dlp`](https://github.com/yt-dlp/yt-dlp) tabanlı hafif bir localhost web
-arayüzü ve CLI.
+A lightweight localhost web UI and CLI powered by
+[`yt-dlp`](https://github.com/yt-dlp/yt-dlp) for archiving YouTube videos and
+playlists you own or have permission to download as high-quality MP3 files.
 
 > [!IMPORTANT]
-> Bu proje, telif hakkı ihlali veya YouTube kısıtlamalarını aşmak için
-> tasarlanmamıştır. Yalnızca size ait, hak sahibinden izin aldığınız ya da
-> yürürlükteki hukukun indirmeye izin verdiği içeriklerde kullanın.
+> This project is not designed to bypass copyright or YouTube restrictions.
+> Use it only for content you own, have permission from the rights holder to
+> download, or may lawfully download under applicable law.
 
-## Hafif yerel arayüz
+## See it in action
 
-Kurulumdan sonra tek komut:
+![YouTube Playlist Download desktop interface](docs/assets/ui-desktop.png)
+
+<p align="center">
+  <img src="docs/assets/ui-queue.png" width="64%" alt="Live download progress and queue">
+  <img src="docs/assets/ui-mobile.png" width="31%" alt="Mobile interface">
+</p>
+
+## Lightweight local interface
+
+Start it with one command after setup:
 
 ```powershell
 uv run youtube-playlist-download ui
 ```
 
-Tarayıcı otomatik olarak `http://127.0.0.1:8765` adresinde açılır. URL’yi
-yapıştırın, private playlist için tarayıcıyı seçin ve önce güvenli önizlemeyi
-çalıştırın. CLI kullanmak zorunda değilsiniz; mevcut CLI otomasyon ve gelişmiş
-kullanım için korunur. İndirme sürerken yeni playlistler sıraya eklenebilir;
-anlık hız, aktarılan boyut, parça sırası ve kalan süre arayüzde canlı gösterilir.
+Your browser opens at `http://127.0.0.1:8765`. Paste a URL, select a browser
+session only when private access is required, and run the safe preview first.
+You do not need to use the CLI for everyday work. The CLI remains available for
+automation and advanced workflows. New playlists can be queued while a download
+is active, with live speed, transferred size, track position, and ETA updates.
 
-## Neden localhost?
+## Why localhost?
 
-Private playlist erişimi, oturum açılmış tarayıcının çerezlerini gerektirir.
-Arayüz yalnızca `127.0.0.1` adresine bağlanır; Google oturumunuz kendi
-cihazınızdan çıkmaz ve hiçbir uzak sunucuda saklanmaz. Proje çerezleri dışa
-aktarmaz veya diske yazmaz.
+Private playlist access may require cookies from a browser where you are already
+signed in. The UI binds only to `127.0.0.1`; your Google session stays on your
+device and is never stored on a remote server. The project does not export or
+write browser cookies to disk.
 
-## Özellikler
+## Features
 
-- Public, unlisted ve erişim yetkiniz olan private playlist desteği
-- Framework gerektirmeyen hafif localhost web arayüzü
-- İndirme sırasında yeni playlist eklemeyi destekleyen sıralı iş kuyruğu
-- Canlı KB/s, aktarılan boyut, parça sayısı, toplam ilerleme ve ETA göstergeleri
-- En iyi mevcut ses akışını MP3'e dönüştürme
-- En yüksek FFmpeg VBR kalitesi (`0`) varsayılanı
-- Kapak görseli ve medya metadata'sı
-- Playlist sırasını koruyan klasör ve dosya adları
-- Başarılı indirmeleri arşivleyerek tekrarları önleme
-- Önizleme (`--dry-run`) ve bağımlılık kontrolü (`doctor`)
-- Parola veya cookie dosyası kabul etmeyen güvenli oturum modeli
+- Public, unlisted, and authorized private playlist support
+- Lightweight localhost web UI with no frontend framework
+- FIFO queue that accepts new playlists during an active download
+- Live KB/s, transferred size, track count, overall progress, and ETA
+- Best available audio stream converted to MP3
+- Highest FFmpeg VBR quality (`0`) by default
+- Embedded thumbnail and media metadata
+- Playlist order preserved in folder and file names
+- Download archive that prevents accidental duplicates
+- Safe preview (`--dry-run`) and dependency diagnostics (`doctor`)
+- No password or cookie-file input
 
-## Hızlı başlangıç
+## Quick start
 
-Gereksinimler:
+Requirements:
 
 - Python 3.11+
 - [FFmpeg](https://ffmpeg.org/download.html)
 - [Deno 2.3+](https://docs.deno.com/runtime/getting_started/installation/)
-  (önerilen) veya Node.js 22+
-- Windows için önerilen geliştirme aracı: [uv](https://docs.astral.sh/uv/)
+  (recommended) or Node.js 22+
+- [uv](https://docs.astral.sh/uv/) for reproducible setup
 
 ```powershell
 winget install Gyan.FFmpeg
@@ -65,21 +73,22 @@ uv run youtube-playlist-download doctor
 uv run youtube-playlist-download ui
 ```
 
-Arayüz tarayıcıyı otomatik açmazsa `http://127.0.0.1:8765` adresine gidin.
+If the browser does not open automatically, visit `http://127.0.0.1:8765`.
 
-CLI ile public playlist önizlemesi:
+Preview a public playlist from the CLI:
 
 ```powershell
 uv run youtube-playlist-download download "PLAYLIST_URL" --dry-run --confirm-rights
 ```
 
-Public playlist indirme:
+Download a public playlist:
 
 ```powershell
 uv run youtube-playlist-download download "PLAYLIST_URL" --confirm-rights
 ```
 
-Private playlist indirme (önce tarayıcıda doğru YouTube hesabına giriş yapın):
+Download an authorized private playlist after signing in to the correct YouTube
+account in Firefox:
 
 ```powershell
 uv run youtube-playlist-download download "PLAYLIST_URL" `
@@ -87,29 +96,28 @@ uv run youtube-playlist-download download "PLAYLIST_URL" `
   --confirm-rights
 ```
 
-Çıktılar varsayılan olarak `downloads/<playlist adı>/` altına yazılır.
+Files are written to `downloads/<playlist title>/` by default.
 
-Önceki sürümlerdeki `playlist-audio` komutu uyumluluk amacıyla çalışmaya devam
-eder; yeni dokümantasyonda repo adıyla aynı olan `youtube-playlist-download`
-komutu kullanılır.
+The legacy `playlist-audio` command remains available for compatibility. New
+documentation uses `youtube-playlist-download`, matching the repository name.
 
-## Dokümantasyon
+## Documentation
 
-- [Kullanım ve tüm seçenekler](docs/usage.md)
-- [Yerel web arayüzü](docs/web-ui.md)
-- [Private playlist erişimi](docs/private-playlists.md)
-- [Kalite ve dosya formatı](docs/audio-quality.md)
-- [Sorun giderme](docs/troubleshooting.md)
-- [Hukuki ve etik sınırlar](docs/legal-and-ethics.md)
-- [Mimari ve katkı rehberi](docs/architecture.md)
+- [Usage and CLI options](docs/usage.md)
+- [Local web interface](docs/web-ui.md)
+- [Private playlist access](docs/private-playlists.md)
+- [Audio quality and file format](docs/audio-quality.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Legal and ethical boundaries](docs/legal-and-ethics.md)
+- [Architecture and development](docs/architecture.md)
 
-## Proje durumu
+## Project status
 
-CLI ve localhost web arayüzü birlikte desteklenir. İş kuyruğu bellekte tutulur;
-uygulama kapatılırsa bekleyen işler yeniden eklenmelidir. Tamamlanan dosyalar ve
-indirme arşivi diskte kalır.
+The CLI and localhost web UI are both supported. The queue is held in memory;
+pending jobs must be added again if the app closes. Completed files and the
+download archive remain on disk.
 
-## Lisans
+## License
 
-Projenin kendi kaynak kodu [MIT Lisansı](LICENSE) ile sunulur. `yt-dlp`,
-FFmpeg ve diğer bağımlılıklar kendi lisanslarına tabidir.
+This project's source code is available under the [MIT License](LICENSE).
+`yt-dlp`, FFmpeg, and other dependencies retain their own licenses.

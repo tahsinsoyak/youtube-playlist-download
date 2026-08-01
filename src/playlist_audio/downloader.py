@@ -28,7 +28,7 @@ class DownloadOutcome:
 
 def _summarize_info(info: dict[str, Any] | None) -> DownloadOutcome:
     if not info:
-        raise DownloadFailed("Erişilebilir bir video veya playlist öğesi bulunamadı.")
+        raise DownloadFailed("No accessible video or playlist item was found.")
 
     entries = info.get("entries")
     if entries is None:
@@ -38,7 +38,7 @@ def _summarize_info(info: dict[str, Any] | None) -> DownloadOutcome:
     available = sum(item is not None for item in resolved_entries)
     unavailable = len(resolved_entries) - available
     if available == 0:
-        raise DownloadFailed("Playlist içinde erişilebilir bir öğe bulunamadı.")
+        raise DownloadFailed("The playlist contains no accessible items.")
     return DownloadOutcome(
         total_items=len(resolved_entries),
         available_items=available,
@@ -47,7 +47,7 @@ def _summarize_info(info: dict[str, Any] | None) -> DownloadOutcome:
 
 
 def _browser_session_error(request: DownloadRequest) -> str:
-    browser = request.browser.value.capitalize() if request.browser else "Tarayıcı"
+    browser = request.browser.value.capitalize() if request.browser else "Browser"
     if request.browser and request.browser.value in {
         "brave",
         "chrome",
@@ -57,14 +57,14 @@ def _browser_session_error(request: DownloadRequest) -> str:
         "vivaldi",
     }:
         return (
-            f"{browser} oturumu okunamadı. Windows, tarayıcı açıkken cookie "
-            "veritabanını kilitliyor. Arayüzü başka bir tarayıcıda açın; "
-            f"{browser} pencerelerini ve arka plan süreçlerini tamamen kapatıp yeniden deneyin. "
-            "Alternatif olarak YouTube'a Firefox'ta giriş yapıp Firefox'u seçin."
+            f"Could not read the {browser} session. Windows locks the cookie "
+            "database while the browser is open. Open this UI in another browser, "
+            f"close every {browser} window and background process, then try again. "
+            "Alternatively, sign in to YouTube with Firefox and select Firefox."
         )
     return (
-        f"{browser} oturumu okunamadı. Doğru profile giriş yaptığınızı kontrol edin, "
-        "tarayıcıyı tamamen kapatıp yeniden deneyin."
+        f"Could not read the {browser} session. Confirm you are signed in to the "
+        "correct profile, close the browser completely, and try again."
     )
 
 

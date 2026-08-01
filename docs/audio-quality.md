@@ -1,29 +1,28 @@
-# Ses kalitesi
+# Audio quality
 
-## “En yüksek kalite MP3” ne anlama gelir?
+## What does “highest-quality MP3” mean?
 
-YouTube çoğu zaman sesi MP3 olarak sunmaz; AAC veya Opus gibi kayıplı bir
-akış sunar. Bu proje:
+YouTube usually serves audio as a lossy AAC or Opus stream rather than MP3. This
+project:
 
-1. `bestaudio/best` ile mevcut en iyi ses akışını seçer.
-2. FFmpeg ve LAME ile MP3'e dönüştürür.
-3. Varsayılan olarak `--audio-quality 0` kullanır.
+1. Selects the best available stream with `bestaudio/best`.
+2. Converts it to MP3 with FFmpeg and LAME.
+3. Uses `--audio-quality 0` by default.
 
-`0`, FFmpeg'in MP3 VBR ölçeğinde en iyi kalite ayarıdır. Ancak kayıplı bir
-kaynağı yüksek bitrate ile yeniden kodlamak kaynağın kaybettiği ayrıntıları
-geri getirmez. Sonuç uyumluluk açısından MP3'tür; arşivsel “kayıpsız” ses
-değildir.
+`0` is the highest setting on FFmpeg's MP3 VBR scale. Re-encoding a lossy source
+at a high bitrate cannot restore detail already lost by the source. The result
+is a broadly compatible MP3, not archival lossless audio.
 
-## Kalite ve dosya boyutu
+## Quality and file size
 
-| Değer | Yaklaşık yaklaşım | Kullanım |
+| Value | Approximate mode | Use case |
 |---:|---|---|
-| `0` | En iyi VBR | Varsayılan; kalite öncelikli |
-| `2` | Yüksek VBR | Daha küçük dosya |
-| `5` | Orta VBR | Alan öncelikli |
-| `10` | En düşük VBR | Önerilmez |
+| `0` | Best VBR | Default; prioritize quality |
+| `2` | High VBR | Smaller files |
+| `5` | Medium VBR | Prioritize storage space |
+| `10` | Lowest VBR | Not recommended |
 
-Örnek:
+Example:
 
 ```powershell
 uv run youtube-playlist-download download "PLAYLIST_URL" `
@@ -31,13 +30,13 @@ uv run youtube-playlist-download download "PLAYLIST_URL" `
   --confirm-rights
 ```
 
-## Metadata ve kapak
+## Metadata and cover art
 
-Varsayılan olarak video başlığı, yükleyen gibi mevcut metadata ve küçük resim
-MP3 dosyasına gömülür. Bazı YouTube başlıkları gerçek `Sanatçı - Parça`
-şemasını takip etmediği için sanatçı alanı her içerikte kusursuz olmayabilir.
+Available metadata such as the video title and uploader, plus the thumbnail, is
+embedded in the MP3 by default. Some YouTube titles do not follow an actual
+`Artist - Track` structure, so artist fields may not be perfect for every item.
 
-Kapak veya metadata istemiyorsanız:
+Disable cover art or metadata:
 
 ```powershell
 uv run youtube-playlist-download download "PLAYLIST_URL" `
@@ -46,4 +45,4 @@ uv run youtube-playlist-download download "PLAYLIST_URL" `
   --confirm-rights
 ```
 
-Kaynak: [yt-dlp post-processing options](https://github.com/yt-dlp/yt-dlp#post-processing-options)
+Source: [yt-dlp post-processing options](https://github.com/yt-dlp/yt-dlp#post-processing-options)

@@ -31,18 +31,18 @@ function browserLabel(value) {
 
 function updateModeLabel() {
   const isPreview = dryRun.checked;
-  dryRun.closest(".toggle").querySelector("b").textContent = isPreview ? "Açık" : "Kapalı";
+  dryRun.closest(".toggle").querySelector("b").textContent = isPreview ? "On" : "Off";
 
   if (isSubmitting) {
-    buttonLabel.textContent = "Sıraya ekleniyor";
+    buttonLabel.textContent = "Adding to queue";
   } else if (hasQueuedWork) {
     buttonLabel.textContent = isPreview
-      ? "Önizlemeyi sıraya ekle"
-      : "Playlisti sıraya ekle";
+      ? "Queue preview"
+      : "Queue playlist";
   } else if (previewReady && !isPreview) {
-    buttonLabel.textContent = "Kontrol tamam — MP3 indir";
+    buttonLabel.textContent = "Access confirmed — download MP3";
   } else {
-    buttonLabel.textContent = isPreview ? "Önizlemeyi başlat" : "MP3 indirmeyi başlat";
+    buttonLabel.textContent = isPreview ? "Start safe preview" : "Start MP3 download";
   }
 }
 
@@ -57,13 +57,13 @@ function updateBrowserProfile() {
   const chromiumBrowsers = ["brave", "chrome", "chromium", "edge", "opera", "vivaldi"];
   if (selected && selected === currentBrowser()) {
     browserHint.textContent =
-      `Bu arayüz ${browserLabel(selected)}’da açık. Oturum kaynağı olarak ` +
-      "tamamen kapalı başka bir tarayıcı seçin.";
+      `This interface is open in ${browserLabel(selected)}. Select another ` +
+      "fully closed browser as the session source.";
   } else if (chromiumBrowsers.includes(selected)) {
     browserHint.textContent =
-      "Windows’ta seçili tarayıcı tamamen kapalı olmalı; açıkken cookie kasası kilitlenir.";
+      "On Windows, the selected browser must be fully closed or its cookie store stays locked.";
   } else if (selected === "firefox") {
-    browserHint.textContent = "Sorun yaşarsanız Firefox’u tamamen kapatıp yeniden deneyin.";
+    browserHint.textContent = "If access fails, close Firefox completely and try again.";
   } else {
     browserHint.textContent = "";
   }
@@ -103,7 +103,7 @@ async function refreshJobs() {
     const response = await fetch("/api/jobs");
     const snapshot = await response.json();
     if (!response.ok) {
-      throw new Error(snapshot.error || "Kuyruk durumu okunamadı.");
+      throw new Error(snapshot.error || "Could not read queue status.");
     }
     const previewJob = (snapshot.recent || []).find(
       (job) => job.id === pendingPreviewJobId,
@@ -128,8 +128,8 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (browserSelect.value && browserSelect.value === currentBrowser()) {
     jobView.showError(
-      `Arayüz ${browserLabel(browserSelect.value)}’da açık olduğu için bu oturum ` +
-        "kilitli. Public playlist seçin veya tamamen kapalı başka bir tarayıcı kullanın.",
+      `This interface is open in ${browserLabel(browserSelect.value)}, so that session ` +
+        "is locked. Select Public playlist or use another fully closed browser.",
     );
     return;
   }
@@ -144,7 +144,7 @@ form.addEventListener("submit", async (event) => {
     });
     const result = await response.json();
     if (!response.ok) {
-      throw new Error(result.error || "İş sıraya eklenemedi.");
+      throw new Error(result.error || "Could not add the job to the queue.");
     }
     if (payload.dry_run) {
       pendingPreviewJobId = result.id;
@@ -183,7 +183,7 @@ fetch("/api/health")
     healthBadge.dataset.connected = "true";
   })
   .catch(() => {
-    healthBadge.querySelector("span:last-child").textContent = "Bağlantı sorunu";
+    healthBadge.querySelector("span:last-child").textContent = "Connection problem";
   });
 
 updateBrowserProfile();

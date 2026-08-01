@@ -35,26 +35,26 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
                 if job:
                     self._json(HTTPStatus.OK, job)
                 else:
-                    self._json(HTTPStatus.NOT_FOUND, {"error": "İş bulunamadı."})
+                    self._json(HTTPStatus.NOT_FOUND, {"error": "Job not found."})
             elif path.startswith("/assets/"):
                 asset_name = path.removeprefix("/assets/")
                 if "/" in asset_name or "\\" in asset_name or ".." in asset_name:
-                    self._json(HTTPStatus.NOT_FOUND, {"error": "Dosya bulunamadı."})
+                    self._json(HTTPStatus.NOT_FOUND, {"error": "File not found."})
                     return
                 content_type = mimetypes.guess_type(asset_name)[0] or "application/octet-stream"
                 if content_type.startswith(("text/", "application/javascript")):
                     content_type = f"{content_type}; charset=utf-8"
                 self._serve_asset(asset_name, content_type)
             else:
-                self._json(HTTPStatus.NOT_FOUND, {"error": "Sayfa bulunamadı."})
+                self._json(HTTPStatus.NOT_FOUND, {"error": "Page not found."})
 
         def do_POST(self) -> None:  # noqa: N802
             path = urlsplit(self.path).path
             if path != "/api/jobs":
-                self._json(HTTPStatus.NOT_FOUND, {"error": "Sayfa bulunamadı."})
+                self._json(HTTPStatus.NOT_FOUND, {"error": "Page not found."})
                 return
             if not self._is_local_json_request():
-                self._json(HTTPStatus.FORBIDDEN, {"error": "Yerel istek doğrulanamadı."})
+                self._json(HTTPStatus.FORBIDDEN, {"error": "Local request validation failed."})
                 return
 
             try:
@@ -62,17 +62,17 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
             except ValueError:
                 content_length = 0
             if content_length <= 0 or content_length > MAX_BODY_BYTES:
-                self._json(HTTPStatus.BAD_REQUEST, {"error": "İstek boyutu geçersiz."})
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "Invalid request size."})
                 return
 
             try:
                 payload = json.loads(self.rfile.read(content_length))
                 if not isinstance(payload, dict):
-                    raise RequestError("JSON nesnesi bekleniyor.")
+                    raise RequestError("Expected a JSON object.")
                 request = parse_download_request(payload)
                 job = manager.create(request)
             except (json.JSONDecodeError, UnicodeDecodeError):
-                self._json(HTTPStatus.BAD_REQUEST, {"error": "Geçersiz JSON."})
+                self._json(HTTPStatus.BAD_REQUEST, {"error": "Invalid JSON."})
             except RequestError as error:
                 self._json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
             else:
@@ -95,7 +95,7 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
             try:
                 content = files(ASSET_PACKAGE).joinpath(name).read_bytes()
             except (FileNotFoundError, IsADirectoryError):
-                self._json(HTTPStatus.NOT_FOUND, {"error": "Dosya bulunamadı."})
+                self._json(HTTPStatus.NOT_FOUND, {"error": "File not found."})
                 return
 
             self.send_response(HTTPStatus.OK)

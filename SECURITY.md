@@ -1,25 +1,24 @@
-# Güvenlik politikası
+# Security policy
 
-## Hassas veri
+## Sensitive data
 
-Bu proje Google parolası, cookie dosyası veya API anahtarı istemez. Böyle bir
-veriyi issue, pull request, ekran görüntüsü veya hata kaydında paylaşmayın.
+This project does not ask for a Google password, cookie file, or API key. Never
+share those values in an issue, pull request, screenshot, or error log.
 
-Web arayüzü yalnızca `127.0.0.1` adresinde çalışacak şekilde tasarlanmıştır.
-Reverse proxy, port forwarding veya kaynak kod değişikliğiyle internete
-açılması desteklenmez.
+The web interface is designed to run only on `127.0.0.1`. Exposing it through a
+reverse proxy, port forwarding, or a source modification is not supported.
 
-Private playlist URL'leri ve video kimlikleri de hassas kabul edilmelidir.
-Raporlamadan önce bunları `[REDACTED]` ile değiştirin.
+Treat private playlist URLs and video identifiers as sensitive. Replace them
+with `[REDACTED]` before reporting a problem.
 
-## Açık bildirme
+## Reporting a vulnerability
 
-Repository public olduğunda güvenlik açığını normal issue yerine GitHub'ın
-private vulnerability reporting / Security Advisory özelliğiyle bildirin.
-Rapor; etkilenen sürümü, yeniden üretme adımlarını ve olası etkiyi içermelidir.
+Use GitHub private vulnerability reporting / Security Advisories instead of a
+public issue. Include the affected version, reproduction steps, and potential
+impact.
 
-## Desteklenen sürüm
+## Supported version
 
-Proje `0.x` aşamasındayken yalnızca en güncel commit desteklenir. `yt-dlp`
-site değişikliklerine bağlı olduğundan bağımlılıkların güncel tutulması
-önemlidir.
+While the project is in the `0.x` stage, only the latest commit is supported.
+Keep dependencies current because `yt-dlp` behavior can change with upstream
+site changes.

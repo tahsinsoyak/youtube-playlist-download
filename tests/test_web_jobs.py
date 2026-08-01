@@ -53,7 +53,7 @@ def test_job_completes_without_exposing_source_url(tmp_path: Path) -> None:
     assert result["downloaded_bytes"] == 50
     assert result["available_items"] == 3
     assert result["unavailable_items"] == 1
-    assert "1 kullanılamayan öğe atlandı" in result["message"]
+    assert "1 unavailable item(s) skipped" in result["message"]
     assert "url" not in result
 
 

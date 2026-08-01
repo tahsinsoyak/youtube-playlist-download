@@ -1,80 +1,80 @@
-# Yerel web arayüzü
+# Local web interface
 
-## Başlatma
+## Start the UI
 
 ```powershell
 uv run youtube-playlist-download ui
 ```
 
-Varsayılan tarayıcı `http://127.0.0.1:8765` adresinde açılır. Açılmazsa adresi
-elle ziyaret edin.
+The default browser opens at `http://127.0.0.1:8765`. Visit that address
+manually if it does not open.
 
-Farklı port:
+Use another port:
 
 ```powershell
 uv run youtube-playlist-download ui --port 9000
 ```
 
-Tarayıcıyı otomatik açmadan:
+Start without opening a browser:
 
 ```powershell
 uv run youtube-playlist-download ui --no-open
 ```
 
-Sunucuyu kapatmak için çalıştığı terminalde `Ctrl+C` kullanın.
+Press `Ctrl+C` in the terminal running the server to stop it.
 
-## Kullanım akışı
+## Workflow
 
-1. YouTube playlist veya video URL’sini yapıştırın.
-2. Public playlist için oturum kaynağını değiştirmeyin.
-3. Private playlist için oturum açık Firefox, Chrome veya diğer tarayıcıyı
-   seçin.
-4. Çıktı klasörünü belirleyin.
-5. `Güvenli önizleme` açıkken hak onayını işaretleyip başlatın.
-6. Önizleme tamamlanınca URL korunur ve güvenli önizleme otomatik kapanır.
-7. `Kontrol tamam — MP3 indir` düğmesine basarak gerçek indirmeyi başlatın.
+1. Paste a YouTube playlist or video URL.
+2. Leave the session source unchanged for a public playlist.
+3. For an authorized private playlist, select a signed-in Firefox, Chrome, or
+   other supported browser.
+4. Choose the output folder.
+5. Keep `Safe preview` enabled, confirm your rights, and start the job.
+6. After a successful preview, the URL stays in place and preview mode turns
+   off automatically.
+7. Select `Access confirmed — download MP3` to start the real download.
 
-İnce ayarlar bölümünden MP3 kalitesi, playlist sırası, browser profili, kapak
-ve metadata ayarları değiştirilebilir.
+Open `Fine controls` to change MP3 quality, playlist positions, browser profile,
+cover art, and metadata options.
 
-## Kuyruk ve canlı ilerleme
+## Queue and live progress
 
-Bir indirme sürerken URL alanına başka bir playlist yapıştırıp düğmeye tekrar
-basabilirsiniz. Yeni iş devam eden indirmeyi kesmez; kuyruğun sonuna eklenir.
-İşler aynı çıktı klasörünü güvenle paylaşabilsin diye sırayla çalıştırılır.
+You can paste another playlist and submit it while a download is active. The new
+job does not interrupt the current one; it is added to the end of the queue.
+Jobs run sequentially so they can safely share an output folder.
 
-Canlı panel şu bilgileri gösterir:
+The live panel displays:
 
-- Playlist genel ilerlemesi ve mevcut parça sırası
-- Anlık indirme hızı (`KB/s` veya `MB/s`)
-- Mevcut parçanın indirilen ve tahmini toplam boyutu
-- yt-dlp tarafından hesaplanan tahmini kalan süre
-- Bekleyen iş sayısı ve FIFO kuyruk sırası
+- Overall playlist progress and current track position
+- Current transfer speed (`KB/s` or `MB/s`)
+- Downloaded and estimated total size for the current track
+- ETA reported by `yt-dlp`
+- Pending job count and FIFO queue position
 
-Playlistte silinmiş veya bölgenizde kullanılamayan öğeler varsa erişilebilir
-öğeler işlenmeye devam eder. Sonuç paneli kaç öğenin erişilebilir olduğunu ve
-kaçının atlandığını uyarı olarak gösterir.
+If a playlist contains deleted or regionally unavailable entries, accessible
+items continue processing. The result reports how many entries were available
+and how many were skipped.
 
-Kuyruk uygulama belleğindedir. Sunucuyu kapatmak bekleyen işleri siler; bitmiş
-MP3 dosyaları ve indirme arşivi etkilenmez.
+The queue is held in application memory. Stopping the server removes pending
+jobs, but completed MP3 files and the download archive remain on disk.
 
-## Güvenlik sınırları
+## Security boundaries
 
-- Sunucu sabit olarak `127.0.0.1` arayüzüne bağlanır.
-- LAN veya internete yayınlama seçeneği yoktur.
-- POST istekleri aynı host/origin ve `application/json` koşullarıyla kabul
-  edilir.
-- Aynı anda yalnızca bir indirme çalışır; diğer işler yerel FIFO kuyruğunda bekler.
-- UI kaynak URL’yi iş durumu yanıtlarında geri göndermez.
-- Parola, cookie dosyası veya API anahtarı alınmaz.
-- Uzak CDN, font veya JavaScript kullanılmaz.
+- The server is fixed to the `127.0.0.1` loopback interface.
+- There is no option to publish it to a LAN or the internet.
+- POST requests require the same host/origin and `application/json`.
+- Only one download runs at a time; other jobs wait in the local FIFO queue.
+- Job responses never expose the source URL.
+- The UI accepts no password, cookie file, or API key.
+- It loads no remote CDN, font, or JavaScript asset.
 
-Bu arayüzü reverse proxy ile internete açmayın. Uzak erişim gerekecekse cookie
-modeli ve kimlik doğrulama mimarisi yeniden tasarlanmalıdır.
+Do not expose this interface through a reverse proxy. Remote access would
+require a redesigned cookie and authentication architecture.
 
-## Gerçek tarayıcı testi
+## Real-browser smoke test
 
-Geliştirme bağımlılıkları ve Chromium kurulduktan sonra:
+After installing development dependencies and Chromium:
 
 ```powershell
 uv sync --extra dev
@@ -82,6 +82,6 @@ uv run playwright install chromium
 uv run python scripts/ui_smoke_test.py
 ```
 
-Smoke test, UI sunucusunun `127.0.0.1:8765` üzerinde çalıştığını varsayar.
-Desktop/mobile yerleşimi, kuyruk ve hız metrikleri, form davranışı, gerçek
-`dry-run` ve browser konsolu kontrol edilir.
+The smoke test expects the UI server on `127.0.0.1:8765`. It checks desktop and
+mobile layouts, queue and speed metrics, form behavior, a real dry run, and the
+browser console.

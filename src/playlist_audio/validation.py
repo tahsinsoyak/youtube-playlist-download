@@ -23,11 +23,9 @@ def validate_youtube_url(value: str) -> str:
     host = (parsed.hostname or "").lower()
 
     if parsed.scheme != "https" or host not in YOUTUBE_HOSTS:
-        raise ValidationError(
-            "Yalnızca https://youtube.com veya https://youtu.be adresleri kabul edilir."
-        )
+        raise ValidationError("Only https://youtube.com and https://youtu.be URLs are accepted.")
     if not parsed.path or parsed.path == "/":
-        raise ValidationError("Video veya playlist adresinin tamamını girin.")
+        raise ValidationError("Enter the complete video or playlist URL.")
     return value.strip()
 
 
@@ -36,14 +34,14 @@ def validate_audio_quality(value: str) -> str:
     try:
         quality = int(value)
     except ValueError as error:
-        raise ValidationError("Ses kalitesi 0 ile 10 arasında bir tam sayı olmalıdır.") from error
+        raise ValidationError("Audio quality must be an integer from 0 to 10.") from error
 
     if quality not in range(11):
-        raise ValidationError("Ses kalitesi 0 ile 10 arasında olmalıdır; 0 en iyisidir.")
+        raise ValidationError("Audio quality must be from 0 to 10; 0 is best.")
     return str(quality)
 
 
 def validate_browser_profile(browser: Browser | None, profile: str | None) -> None:
     """A browser profile has no meaning without a selected browser."""
     if profile and browser is None:
-        raise ValidationError("--browser-profile kullanmak için --browser da belirtin.")
+        raise ValidationError("Select --browser before using --browser-profile.")

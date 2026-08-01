@@ -1,9 +1,9 @@
 import { formatEta, formatSpeed, formatTransfer } from "./formatters.js";
 
 const STATE_LABELS = {
-  queued: "SIRADA",
-  completed: "TAMAMLANDI",
-  failed: "HATA",
+  queued: "QUEUED",
+  completed: "COMPLETE",
+  failed: "ERROR",
 };
 
 export class JobView {
@@ -27,9 +27,9 @@ export class JobView {
     this.statusPanel.hidden = false;
     this.statusPanel.dataset.state = "failed";
     this.statusPanel.dataset.warning = "false";
-    this.jobState.textContent = "HATA";
+    this.jobState.textContent = "ERROR";
     this.jobMessage.textContent = message;
-    this.jobItem.textContent = "Ayarları kontrol edip yeniden deneyin.";
+    this.jobItem.textContent = "Review the settings and try again.";
     this.jobProgress.removeAttribute("value");
     this.jobPercent.textContent = "";
     this._renderMetrics({});
@@ -56,14 +56,14 @@ export class JobView {
     this.jobState.textContent =
       job.state === "running"
         ? job.dry_run
-          ? "ÖNİZLEME"
-          : "KAYIT"
+          ? "PREVIEW"
+          : "RECORDING"
         : job.state === "completed" && job.unavailable_items
-          ? "TAMAMLANDI · UYARI"
-        : STATE_LABELS[job.state] || "İŞLENİYOR";
+          ? "COMPLETE · WARNING"
+        : STATE_LABELS[job.state] || "PROCESSING";
     this.jobMessage.textContent = job.message;
     this.jobItem.textContent =
-      job.current_item || job.playlist_title || `Hedef: ${job.output}`;
+      job.current_item || job.playlist_title || `Destination: ${job.output}`;
 
     if (typeof job.progress === "number") {
       const rounded = Math.round(job.progress);
@@ -82,12 +82,12 @@ export class JobView {
     this.metricSpeed.textContent = formatSpeed(job.speed);
     this.metricBytes.textContent = formatTransfer(job.downloaded_bytes, job.total_bytes);
     this.metricEta.textContent =
-      job.state === "completed" ? "Bitti" : formatEta(job.eta);
+      job.state === "completed" ? "Done" : formatEta(job.eta);
   }
 
   _renderQueue(queued) {
     this.queuePanel.hidden = queued.length === 0;
-    this.queueCount.textContent = `${queued.length} bekliyor`;
+    this.queueCount.textContent = `${queued.length} waiting`;
     this.queueList.replaceChildren();
 
     queued.forEach((job) => {
@@ -97,10 +97,10 @@ export class JobView {
       const detail = document.createElement("small");
       const position = document.createElement("span");
 
-      title.textContent = `Playlist işi ${String(job.sequence).padStart(2, "0")}`;
-      detail.textContent = job.dry_run ? "Güvenli önizleme" : `MP3 · ${job.output}`;
+      title.textContent = `Playlist job ${String(job.sequence).padStart(2, "0")}`;
+      detail.textContent = job.dry_run ? "Safe preview" : `MP3 · ${job.output}`;
       position.className = "queue-position";
-      position.textContent = `${job.queue_position}. sıra`;
+      position.textContent = `Position ${job.queue_position}`;
       copy.append(title, detail);
       item.append(copy, position);
       this.queueList.append(item);

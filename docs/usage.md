@@ -1,56 +1,56 @@
-# Kullanım rehberi
+# Usage guide
 
-## Komutlar
+## Commands
 
-### Yerel web arayüzü
+### Local web interface
 
 ```powershell
 uv run youtube-playlist-download ui
 ```
 
-Günlük kullanım için önerilen yöntemdir. Tarayıcı otomatik açılır; CLI
-seçeneklerinin önemli bölümü form üzerinden kullanılabilir. Ayrıntılar:
-[Yerel web arayüzü](web-ui.md).
+This is the recommended option for everyday use. The browser opens
+automatically, and the form exposes the most important CLI options. See
+[Local web interface](web-ui.md) for details.
 
-### Sistem kontrolü
+### System diagnostics
 
 ```powershell
 uv run youtube-playlist-download doctor
 ```
 
-Python, `yt-dlp`, FFmpeg ve `ffprobe` sürümlerini kontrol eder. Bu komut
-YouTube'a bağlanmaz.
+Checks Python, `yt-dlp`, FFmpeg, and `ffprobe`. This command does not connect to
+YouTube.
 
-### İndirme
+### Download
 
 ```powershell
 uv run youtube-playlist-download download "PLAYLIST_URL" --confirm-rights
 ```
 
-Temel seçenekler:
+Core options:
 
-| Seçenek | Varsayılan | Açıklama |
+| Option | Default | Description |
 |---|---:|---|
-| `--output`, `-o` | `downloads` | Müzik kitaplığının kök klasörü |
-| `--browser` | yok | Private içerik için tarayıcı oturumu |
-| `--browser-profile` | yok | Belirli tarayıcı profili |
-| `--audio-quality` | `0` | FFmpeg VBR kalitesi; `0` en iyi |
-| `--playlist-items` | tümü | İndirilecek sıra/aralık |
-| `--archive` | çıktı altında | Başarılı indirmelerin kimlik listesi |
-| `--dry-run` | kapalı | Dosya yazmadan erişim/seçim kontrolü |
-| `--no-thumbnail` | kapalı | Kapak gömmeyi devre dışı bırakır |
-| `--no-metadata` | kapalı | Metadata gömmeyi devre dışı bırakır |
-| `--confirm-rights` | zorunlu | İndirme izni onayı |
+| `--output`, `-o` | `downloads` | Root folder for the music library |
+| `--browser` | none | Signed-in browser session for private content |
+| `--browser-profile` | none | Specific browser profile |
+| `--audio-quality` | `0` | FFmpeg VBR quality; `0` is best |
+| `--playlist-items` | all | Playlist positions or ranges to download |
+| `--archive` | under output | IDs of successful downloads |
+| `--dry-run` | off | Check access and selection without writing media |
+| `--no-thumbnail` | off | Disable embedded cover art |
+| `--no-metadata` | off | Disable embedded metadata |
+| `--confirm-rights` | required | Confirm permission to download |
 
-Tüm seçenekleri görmek için:
+Show every option:
 
 ```powershell
 uv run youtube-playlist-download download --help
 ```
 
-## Playlistin bir bölümünü indirme
+## Download part of a playlist
 
-İlk 10 öğe:
+First 10 items:
 
 ```powershell
 uv run youtube-playlist-download download "PLAYLIST_URL" `
@@ -58,7 +58,7 @@ uv run youtube-playlist-download download "PLAYLIST_URL" `
   --confirm-rights
 ```
 
-Belirli öğeler:
+Specific items:
 
 ```powershell
 uv run youtube-playlist-download download "PLAYLIST_URL" `
@@ -66,7 +66,7 @@ uv run youtube-playlist-download download "PLAYLIST_URL" `
   --confirm-rights
 ```
 
-## Farklı hedef klasör
+## Choose another output folder
 
 ```powershell
 uv run youtube-playlist-download download "PLAYLIST_URL" `
@@ -74,15 +74,14 @@ uv run youtube-playlist-download download "PLAYLIST_URL" `
   --confirm-rights
 ```
 
-## Tekrar indirmeyi önleme
+## Prevent duplicate downloads
 
-Her başarılı indirme, varsayılan olarak çıktı klasöründeki
-`.playlist-audio-archive.txt` dosyasına kaydedilir. Aynı URL daha sonra tekrar
-çalıştırıldığında kayıtlı videolar atlanır. Bu dosya yalnızca medya kimlikleri
-içerir; oturum çerezi içermez.
+Each successful download is recorded in `.playlist-audio-archive.txt` under the
+output folder by default. Recorded videos are skipped when the same playlist is
+run again. The archive contains media identifiers only, never session cookies.
 
-Farklı arşiv dosyaları kullanarak aynı videoyu farklı koleksiyonlarda
-saklayabilirsiniz:
+Use separate archive files when the same video intentionally belongs in more
+than one collection:
 
 ```powershell
 uv run youtube-playlist-download download "PLAYLIST_URL" `
