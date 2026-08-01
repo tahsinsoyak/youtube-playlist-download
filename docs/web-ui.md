@@ -83,5 +83,5 @@ uv run python scripts/ui_smoke_test.py
 ```
 
 The smoke test expects the UI server on `127.0.0.1:8765`. It checks desktop and
-mobile layouts, queue and speed metrics, form behavior, a real dry run, and the
-browser console.
+mobile layouts, queue and speed metrics, form behavior, an end-to-end dry run,
+and the browser console.

@@ -58,8 +58,8 @@ def _browser_session_error(request: DownloadRequest) -> str:
     }:
         return (
             f"Could not read the {browser} session. Windows locks the cookie "
-            "database while the browser is open. Open this UI in another browser, "
-            f"close every {browser} window and background process, then try again. "
+            "database while the browser is open. "
+            f"Close every {browser} window and background process, then try again. "
             "Alternatively, sign in to YouTube with Firefox and select Firefox."
         )
     return (

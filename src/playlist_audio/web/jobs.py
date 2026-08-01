@@ -100,7 +100,7 @@ class JobManager:
     def _run_job(self, job_id: str) -> None:
         with self._lock:
             request = self._jobs[job_id].request
-        initial = "Checking playlist access" if request.dry_run else "Preparing playlist"
+        initial = "Checking access" if request.dry_run else "Preparing download"
         self._update(job_id, state="running", message=initial, started_at=now_iso())
 
         try:
