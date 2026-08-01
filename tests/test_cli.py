@@ -19,6 +19,13 @@ def test_help_exposes_expected_commands() -> None:
     assert "ui" in result.stdout
 
 
+def test_version_uses_public_project_name() -> None:
+    result = runner.invoke(app, ["--version"])
+
+    assert result.exit_code == 0
+    assert "youtube-playlist-download 0.2.0" in result.stdout
+
+
 def test_download_requires_rights_confirmation() -> None:
     result = runner.invoke(app, ["download", PLAYLIST_URL])
 

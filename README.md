@@ -1,8 +1,9 @@
-# Playlist Audio Downloader
+# YouTube Playlist Download
 
 Kendinize ait veya indirme izniniz bulunan YouTube video ve playlistlerini
 yüksek kaliteli MP3 dosyaları olarak yerel bilgisayarınızda arşivleyen,
-[`yt-dlp`](https://github.com/yt-dlp/yt-dlp) tabanlı bir CLI.
+[`yt-dlp`](https://github.com/yt-dlp/yt-dlp) tabanlı hafif bir localhost web
+arayüzü ve CLI.
 
 > [!IMPORTANT]
 > Bu proje, telif hakkı ihlali veya YouTube kısıtlamalarını aşmak için
@@ -14,7 +15,7 @@ yüksek kaliteli MP3 dosyaları olarak yerel bilgisayarınızda arşivleyen,
 Kurulumdan sonra tek komut:
 
 ```powershell
-uv run playlist-audio ui
+uv run youtube-playlist-download ui
 ```
 
 Tarayıcı otomatik olarak `http://127.0.0.1:8765` adresinde açılır. URL’yi
@@ -57,11 +58,11 @@ Gereksinimler:
 ```powershell
 winget install Gyan.FFmpeg
 winget install DenoLand.Deno
-git clone https://github.com/tahsinsoyak/youtube-private-list-downloader.git
-cd youtube-private-list-downloader
-uv sync
-uv run playlist-audio doctor
-uv run playlist-audio ui
+git clone https://github.com/tahsinsoyak/youtube-playlist-download.git
+cd youtube-playlist-download
+uv sync --locked
+uv run youtube-playlist-download doctor
+uv run youtube-playlist-download ui
 ```
 
 Arayüz tarayıcıyı otomatik açmazsa `http://127.0.0.1:8765` adresine gidin.
@@ -69,24 +70,28 @@ Arayüz tarayıcıyı otomatik açmazsa `http://127.0.0.1:8765` adresine gidin.
 CLI ile public playlist önizlemesi:
 
 ```powershell
-uv run playlist-audio download "PLAYLIST_URL" --dry-run --confirm-rights
+uv run youtube-playlist-download download "PLAYLIST_URL" --dry-run --confirm-rights
 ```
 
 Public playlist indirme:
 
 ```powershell
-uv run playlist-audio download "PLAYLIST_URL" --confirm-rights
+uv run youtube-playlist-download download "PLAYLIST_URL" --confirm-rights
 ```
 
 Private playlist indirme (önce tarayıcıda doğru YouTube hesabına giriş yapın):
 
 ```powershell
-uv run playlist-audio download "PLAYLIST_URL" `
+uv run youtube-playlist-download download "PLAYLIST_URL" `
   --browser firefox `
   --confirm-rights
 ```
 
 Çıktılar varsayılan olarak `downloads/<playlist adı>/` altına yazılır.
+
+Önceki sürümlerdeki `playlist-audio` komutu uyumluluk amacıyla çalışmaya devam
+eder; yeni dokümantasyonda repo adıyla aynı olan `youtube-playlist-download`
+komutu kullanılır.
 
 ## Dokümantasyon
 

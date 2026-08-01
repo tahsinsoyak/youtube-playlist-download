@@ -8,8 +8,9 @@
       name="description"
       content="İzinli YouTube playlistlerini yerel bilgisayarınızda MP3 olarak arşivleyin."
     >
-    <title>Playlist Audio — Local Deck</title>
+    <title>YouTube Playlist Download — Local UI + CLI</title>
     <link rel="stylesheet" href="/assets/base.css">
+    <link rel="stylesheet" href="/assets/modes.css">
     <link rel="stylesheet" href="/assets/deck.css">
     <link rel="stylesheet" href="/assets/queue.css">
     <link rel="stylesheet" href="/assets/responsive.css">
@@ -19,11 +20,11 @@
     <div class="grain" aria-hidden="true"></div>
 
     <header class="topbar">
-      <a class="brand" href="/" aria-label="Playlist Audio ana sayfa">
-        <span class="brand-mark" aria-hidden="true">PA</span>
+      <a class="brand" href="/" aria-label="YouTube Playlist Download ana sayfa">
+        <span class="brand-mark" aria-hidden="true">YD</span>
         <span>
-          <strong>Playlist Audio</strong>
-          <small>Local Deck / 01</small>
+          <strong>YouTube Playlist Download</strong>
+          <small>Local UI + CLI / 01</small>
         </span>
       </a>
       <div class="local-badge" id="health-badge">
@@ -34,11 +35,11 @@
 
     <main>
       <section class="intro" aria-labelledby="page-title">
-        <p class="eyebrow">PRIVATE PLAYLIST · LOCAL ARCHIVE</p>
+        <p class="eyebrow">LOCAL UI · CLI · YT-DLP ENGINE</p>
         <h1 id="page-title">Playlist’ini<br><em>rafına indir.</em></h1>
         <p class="lede">
-          URL’yi yapıştır. Önce erişimi kontrol et, sonra yüksek kaliteli
-          MP3 arşivini oluştur. Oturumun bu bilgisayardan çıkmaz.
+          Tarayıcıdan URL’yi yapıştır veya terminalden çalıştır. Önce erişimi
+          kontrol et, sonra yüksek kaliteli MP3 arşivini yerel olarak oluştur.
         </p>
 
         <div class="signal-card" aria-label="İşlem özellikleri">
@@ -55,6 +56,31 @@
             <p>Kapak + metadata</p>
           </div>
         </div>
+
+        <section class="access-modes" aria-labelledby="access-title">
+          <div class="access-heading">
+            <p class="deck-kicker">TWO WAYS IN</p>
+            <h2 id="access-title">Arayüz veya terminal.</h2>
+          </div>
+          <div class="access-grid">
+            <article class="access-card is-recommended">
+              <span class="access-index">UI</span>
+              <div>
+                <strong>Yerel web arayüzü</strong>
+                <small>Günlük kullanım · kuyruk + canlı ilerleme</small>
+                <code>uv run youtube-playlist-download ui</code>
+              </div>
+            </article>
+            <article class="access-card">
+              <span class="access-index">CLI</span>
+              <div>
+                <strong>Komut satırı</strong>
+                <small>Otomasyon · scriptler + gelişmiş seçenekler</small>
+                <code>uv run youtube-playlist-download --help</code>
+              </div>
+            </article>
+          </div>
+        </section>
       </section>
 
       <section class="deck" aria-labelledby="deck-title">
@@ -234,7 +260,7 @@
 
     <footer>
       <p>LOCALHOST · COOKIE DOSYASI YOK · PAROLA YOK</p>
-      <p>Motor: yt-dlp + FFmpeg</p>
+      <p>UI + CLI · yt-dlp + FFmpeg</p>
     </footer>
   </body>
 </html>

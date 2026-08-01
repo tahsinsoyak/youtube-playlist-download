@@ -3,7 +3,7 @@
 ## Başlatma
 
 ```powershell
-uv run playlist-audio ui
+uv run youtube-playlist-download ui
 ```
 
 Varsayılan tarayıcı `http://127.0.0.1:8765` adresinde açılır. Açılmazsa adresi
@@ -12,13 +12,13 @@ elle ziyaret edin.
 Farklı port:
 
 ```powershell
-uv run playlist-audio ui --port 9000
+uv run youtube-playlist-download ui --port 9000
 ```
 
 Tarayıcıyı otomatik açmadan:
 
 ```powershell
-uv run playlist-audio ui --no-open
+uv run youtube-playlist-download ui --no-open
 ```
 
 Sunucuyu kapatmak için çalıştığı terminalde `Ctrl+C` kullanın.

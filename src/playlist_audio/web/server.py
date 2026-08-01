@@ -31,7 +31,7 @@ def run_ui(port: int, open_browser: bool = True) -> None:
     actual_port = server.server_port
     url = f"http://{LOOPBACK_HOST}:{actual_port}"
 
-    console.print("\n[bold]Playlist Audio UI hazır.[/bold]")
+    console.print("\n[bold]YouTube Playlist Download UI hazır.[/bold]")
     console.print(f"Adres: [link={url}]{url}[/link]")
     console.print("Yalnızca bu bilgisayardan erişilebilir. Kapatmak için Ctrl+C.\n")
 

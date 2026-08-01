@@ -1,1 +1,1 @@
-"""Local-only web interface for Playlist Audio Downloader."""
+"""Local-only web interface for YouTube Playlist Download."""

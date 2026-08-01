@@ -3,7 +3,7 @@
 ## Önce tanı komutunu çalıştırın
 
 ```powershell
-uv run playlist-audio doctor
+uv run youtube-playlist-download doctor
 ```
 
 ## `ffmpeg not found`

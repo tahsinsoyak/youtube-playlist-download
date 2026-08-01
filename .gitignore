@@ -8,7 +8,6 @@ __pycache__/
 htmlcov/
 dist/
 build/
-uv.lock
 test-results/
 
 # Downloaded media and local state
@@ -24,6 +23,8 @@ cookies.txt
 *.netrc
 .env
 .env.*
+*.sqlite
+*.sqlite3
 
 # Editors and operating systems
 .idea/

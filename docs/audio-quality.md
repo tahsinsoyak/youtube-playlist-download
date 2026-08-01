@@ -26,7 +26,7 @@ değildir.
 Örnek:
 
 ```powershell
-uv run playlist-audio download "PLAYLIST_URL" `
+uv run youtube-playlist-download download "PLAYLIST_URL" `
   --audio-quality 2 `
   --confirm-rights
 ```
@@ -40,7 +40,7 @@ MP3 dosyasına gömülür. Bazı YouTube başlıkları gerçek `Sanatçı - Par�
 Kapak veya metadata istemiyorsanız:
 
 ```powershell
-uv run playlist-audio download "PLAYLIST_URL" `
+uv run youtube-playlist-download download "PLAYLIST_URL" `
   --no-thumbnail `
   --no-metadata `
   --confirm-rights

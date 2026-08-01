@@ -12,7 +12,7 @@ tarayıcının çerezlerini okumaktır.
 4. Önizleme çalıştırın:
 
 ```powershell
-uv run playlist-audio download "PRIVATE_PLAYLIST_URL" `
+uv run youtube-playlist-download download "PRIVATE_PLAYLIST_URL" `
   --browser firefox `
   --dry-run `
   --confirm-rights
@@ -23,7 +23,7 @@ uv run playlist-audio download "PRIVATE_PLAYLIST_URL" `
 ## Chrome veya Edge kullanımı
 
 ```powershell
-uv run playlist-audio download "PRIVATE_PLAYLIST_URL" `
+uv run youtube-playlist-download download "PRIVATE_PLAYLIST_URL" `
   --browser chrome `
   --confirm-rights
 ```
@@ -41,7 +41,7 @@ giriş yapıp UI'da Firefox'u seçmektir.
 Belirli bir profil:
 
 ```powershell
-uv run playlist-audio download "PRIVATE_PLAYLIST_URL" `
+uv run youtube-playlist-download download "PRIVATE_PLAYLIST_URL" `
   --browser firefox `
   --browser-profile "default-release" `
   --confirm-rights

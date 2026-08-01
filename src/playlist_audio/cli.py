@@ -23,8 +23,8 @@ from playlist_audio.validation import (
 configure_utf8_output()
 
 app = typer.Typer(
-    name="playlist-audio",
-    help="İzinli YouTube playlistlerini yüksek kaliteli MP3 olarak arşivler.",
+    name="youtube-playlist-download",
+    help="İzinli YouTube playlistlerini UI veya CLI ile yüksek kaliteli MP3 olarak arşivler.",
     no_args_is_help=True,
 )
 console = Console()
@@ -32,7 +32,7 @@ console = Console()
 
 def _version_callback(value: bool) -> None:
     if value:
-        console.print(f"playlist-audio {__version__}")
+        console.print(f"youtube-playlist-download {__version__}")
         raise typer.Exit()
 
 

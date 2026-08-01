@@ -43,7 +43,7 @@ def test_serves_ui_health_and_security_headers() -> None:
     with running_server() as base_url:
         with urlopen(f"{base_url}/", timeout=2) as response:
             html = response.read().decode()
-            assert "Playlist Audio" in html
+            assert "YouTube Playlist Download" in html
             assert response.headers["X-Frame-Options"] == "DENY"
 
         with urlopen(f"{base_url}/api/health", timeout=2) as response:

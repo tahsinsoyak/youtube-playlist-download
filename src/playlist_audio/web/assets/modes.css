@@ -1,0 +1,90 @@
+.access-modes {
+  margin-top: 34px;
+}
+
+.access-heading {
+  display: flex;
+  gap: 20px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.access-heading h2 {
+  margin: 0;
+  font-family: var(--display-font);
+  font-size: 25px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+
+.access-grid {
+  display: grid;
+  margin-top: 14px;
+  gap: 8px;
+}
+
+.access-card {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  padding: 14px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  border: 1px solid var(--line);
+  background: rgba(238, 231, 214, 0.025);
+}
+
+.access-card.is-recommended {
+  border-color: rgba(215, 250, 104, 0.32);
+  background: rgba(215, 250, 104, 0.045);
+}
+
+.access-card.is-recommended::after {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  color: var(--acid);
+  content: "ÖNERİLEN";
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.access-index {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(238, 231, 214, 0.24);
+  color: var(--signal);
+  font-family: var(--display-font);
+  font-size: 15px;
+}
+
+.access-card strong,
+.access-card small,
+.access-card code {
+  display: block;
+}
+
+.access-card strong {
+  padding-right: 64px;
+  font-size: 12px;
+}
+
+.access-card small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.access-card code {
+  margin-top: 10px;
+  overflow: hidden;
+  color: var(--paper);
+  font-size: 9px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

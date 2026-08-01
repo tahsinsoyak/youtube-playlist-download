@@ -20,6 +20,9 @@
   }
 
   .lede { font-size: 15px; }
+  .access-heading { display: grid; gap: 8px; }
+  .access-heading h2 { font-size: 23px; }
+  .access-card code { white-space: normal; word-break: break-word; }
   .deck { padding: 20px 16px; }
   .field-grid, .advanced-grid { grid-template-columns: 1fr; }
   .field-wide { grid-column: auto; }

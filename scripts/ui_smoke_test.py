@@ -40,8 +40,10 @@ def run() -> None:
             raise AssertionError(
                 f"Network did not become idle: {sorted(pending_requests)}"
             ) from None
-        expect(page).to_have_title("Playlist Audio — Local Deck")
+        expect(page).to_have_title("YouTube Playlist Download — Local UI + CLI")
         expect(page.get_by_role("heading", name="Playlist’ini rafına indir.")).to_be_visible()
+        expect(page.get_by_role("heading", name="Arayüz veya terminal.")).to_be_visible()
+        expect(page.locator(".access-card code")).to_have_count(2)
         expect(page.locator("#health-badge")).to_have_attribute("data-connected", "true")
 
         profile = page.locator("#browser-profile")

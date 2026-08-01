@@ -5,7 +5,7 @@
 ### Yerel web arayüzü
 
 ```powershell
-uv run playlist-audio ui
+uv run youtube-playlist-download ui
 ```
 
 Günlük kullanım için önerilen yöntemdir. Tarayıcı otomatik açılır; CLI
@@ -15,7 +15,7 @@ seçeneklerinin önemli bölümü form üzerinden kullanılabilir. Ayrıntılar:
 ### Sistem kontrolü
 
 ```powershell
-uv run playlist-audio doctor
+uv run youtube-playlist-download doctor
 ```
 
 Python, `yt-dlp`, FFmpeg ve `ffprobe` sürümlerini kontrol eder. Bu komut
@@ -24,7 +24,7 @@ YouTube'a bağlanmaz.
 ### İndirme
 
 ```powershell
-uv run playlist-audio download "PLAYLIST_URL" --confirm-rights
+uv run youtube-playlist-download download "PLAYLIST_URL" --confirm-rights
 ```
 
 Temel seçenekler:
@@ -45,7 +45,7 @@ Temel seçenekler:
 Tüm seçenekleri görmek için:
 
 ```powershell
-uv run playlist-audio download --help
+uv run youtube-playlist-download download --help
 ```
 
 ## Playlistin bir bölümünü indirme
@@ -53,7 +53,7 @@ uv run playlist-audio download --help
 İlk 10 öğe:
 
 ```powershell
-uv run playlist-audio download "PLAYLIST_URL" `
+uv run youtube-playlist-download download "PLAYLIST_URL" `
   --playlist-items "1:10" `
   --confirm-rights
 ```
@@ -61,7 +61,7 @@ uv run playlist-audio download "PLAYLIST_URL" `
 Belirli öğeler:
 
 ```powershell
-uv run playlist-audio download "PLAYLIST_URL" `
+uv run youtube-playlist-download download "PLAYLIST_URL" `
   --playlist-items "1,3,7" `
   --confirm-rights
 ```
@@ -69,7 +69,7 @@ uv run playlist-audio download "PLAYLIST_URL" `
 ## Farklı hedef klasör
 
 ```powershell
-uv run playlist-audio download "PLAYLIST_URL" `
+uv run youtube-playlist-download download "PLAYLIST_URL" `
   --output "D:\Music\YouTube Archive" `
   --confirm-rights
 ```
@@ -85,7 +85,7 @@ Farklı arşiv dosyaları kullanarak aynı videoyu farklı koleksiyonlarda
 saklayabilirsiniz:
 
 ```powershell
-uv run playlist-audio download "PLAYLIST_URL" `
+uv run youtube-playlist-download download "PLAYLIST_URL" `
   --archive ".state\my-playlist.txt" `
   --confirm-rights
 ```
