@@ -1,15 +1,15 @@
-# Private playlist erişimi
+# Private playlist access
 
-YouTube kullanıcı adı/parola ile doğrudan CLI girişini güvenilir biçimde
-desteklemez. `yt-dlp` tarafından önerilen yöntem, zaten oturum açılmış
-tarayıcının çerezlerini okumaktır.
+YouTube does not provide a reliable direct username/password login for this CLI.
+The method recommended by `yt-dlp` is to read cookies from a browser where you
+are already signed in.
 
-## Önerilen akış
+## Recommended workflow
 
-1. Firefox'ta playlisti görebilen YouTube hesabına giriş yapın.
-2. Playlist URL'sini tarayıcıda açıp erişimi doğrulayın.
-3. Firefox'u tamamen kapatın.
-4. Önizleme çalıştırın:
+1. Sign in to the YouTube account that can view the playlist in Firefox.
+2. Open the playlist URL in the browser and verify access.
+3. Close Firefox completely.
+4. Run a preview:
 
 ```powershell
 uv run youtube-playlist-download download "PRIVATE_PLAYLIST_URL" `
@@ -18,9 +18,9 @@ uv run youtube-playlist-download download "PRIVATE_PLAYLIST_URL" `
   --confirm-rights
 ```
 
-5. Liste doğruysa `--dry-run` seçeneğini kaldırın.
+5. Remove `--dry-run` after confirming the playlist is correct.
 
-## Chrome veya Edge kullanımı
+## Chrome or Edge
 
 ```powershell
 uv run youtube-playlist-download download "PRIVATE_PLAYLIST_URL" `
@@ -28,17 +28,17 @@ uv run youtube-playlist-download download "PRIVATE_PLAYLIST_URL" `
   --confirm-rights
 ```
 
-Windows'ta Chromium tabanlı tarayıcılar çerez veritabanını kilitleyebilir veya
-işletim sistemi destekli şifreleme nedeniyle çözülemeyebilir. Önce tarayıcıyı
-ve arka plan süreçlerini tamamen kapatın. Sorun sürerse Firefox profili
-kullanmak genellikle daha güvenilirdir.
+On Windows, Chromium-based browsers may lock their cookie database or use
+operating-system encryption that cannot be read while the browser is open.
+Close every browser window and background process first. A Firefox profile is
+often more reliable if the problem continues.
 
-UI'ı Chrome'da açtıysanız Chrome çerezleri doğal olarak kilitli kalır. Bu
-durumda UI adresini Edge veya Firefox'ta açın, Chrome'u tamamen kapatın ve
-oturum kaynağı olarak Chrome'u seçin. Diğer seçenek, YouTube'a Firefox'ta
-giriş yapıp UI'da Firefox'u seçmektir.
+If the UI itself is open in Chrome, Chrome's cookies naturally remain locked.
+Open the UI in Edge or Firefox, close Chrome completely, and then select Chrome
+as the session source. Alternatively, sign in to YouTube in Firefox and select
+Firefox in the UI.
 
-Belirli bir profil:
+Use a specific profile:
 
 ```powershell
 uv run youtube-playlist-download download "PRIVATE_PLAYLIST_URL" `
@@ -47,20 +47,19 @@ uv run youtube-playlist-download download "PRIVATE_PLAYLIST_URL" `
   --confirm-rights
 ```
 
-Profil yolunu Firefox'ta `about:profiles`, Chrome'da `chrome://version`,
-Edge'de `edge://version` sayfasından görebilirsiniz.
+Find profile paths at `about:profiles` in Firefox, `chrome://version` in Chrome,
+or `edge://version` in Edge.
 
-## Güvenlik modeli
+## Security model
 
-- Uygulama Google parolanızı istemez.
-- Uygulama cookie dosyası kabul etmez veya üretmez.
-- `yt-dlp`, seçilen tarayıcı profilinden gereken oturumu çalışma anında okur.
-- Çerezler yalnızca erişim isteği için `yt-dlp` tarafından YouTube'a gönderilir.
-- İndirme klasörünü veya ayrıntılı hata kayıtlarını paylaşmadan önce içeriğini
-  kontrol edin.
+- The app never asks for your Google password.
+- The app does not accept or create cookie files.
+- `yt-dlp` reads the required session from the selected browser profile at run
+  time.
+- Cookies are sent only by `yt-dlp` to YouTube for the access request.
+- Review download folders and detailed error logs before sharing them.
 
-Tarayıcı oturumu hesap erişimi sağlayan hassas veridir. Herhangi bir
-`cookies.txt` dosyasını repoya, issue'ya, mesaja veya bulut depolamaya
-yüklemeyin.
+A browser session is sensitive account-access data. Never upload a `cookies.txt`
+file to a repository, issue, message, or cloud drive.
 
-Kaynak: [yt-dlp FAQ - cookies](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp)
+Source: [yt-dlp FAQ — cookies](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp)

@@ -1,6 +1,6 @@
-# Sorun giderme
+# Troubleshooting
 
-## Önce tanı komutunu çalıştırın
+## Run diagnostics first
 
 ```powershell
 uv run youtube-playlist-download doctor
@@ -14,70 +14,69 @@ Windows:
 winget install Gyan.FFmpeg
 ```
 
-Terminali kapatıp yeniden açın ve `doctor` komutunu tekrar çalıştırın.
+Restart the terminal and run `doctor` again.
 
-## JavaScript runtime bulunamadı
+## JavaScript runtime not found
 
-Güncel YouTube akışlarında `yt-dlp`, JavaScript doğrulamalarını çözmek için
-Deno 2.3+ (önerilen) veya Node.js 22+ ister. Windows'ta:
+Current YouTube flows require a JavaScript runtime so `yt-dlp` can solve player
+challenges. Install Deno 2.3+ (recommended) or Node.js 22+. On Windows:
 
 ```powershell
 winget install DenoLand.Deno
 ```
 
-Terminali yeniden açıp `doctor` komutunda `JavaScript` satırının hazır olduğunu
-doğrulayın. Proje `yt-dlp[default]` bağımlılığı sayesinde eşleşen
-`yt-dlp-ejs` paketini de kurar.
+Restart the terminal and confirm the `JavaScript` row is ready in `doctor`.
+The `yt-dlp[default]` dependency also installs the matching `yt-dlp-ejs` package.
 
-## Private playlist bulunamıyor
+## Private playlist not found
 
-- Tarayıcıda doğru Google hesabının açık olduğunu doğrulayın.
-- URL'nin tamamını çift tırnak içinde verin.
-- `--browser firefox` ekleyin.
-- Tarayıcıyı tamamen kapatıp yeniden deneyin.
-- Önce `--dry-run` ile erişimi test edin.
+- Confirm the correct Google account is signed in within the browser.
+- Pass the complete URL inside double quotes.
+- Add `--browser firefox`.
+- Close the browser completely and try again.
+- Test access with `--dry-run` first.
 
-## Tarayıcı cookie veritabanı kilitli
+## Browser cookie database is locked
 
-Tarayıcı pencerelerini ve arka plan süreçlerini kapatın. Windows'ta sorun
-sürüyorsa Firefox ile oturum açıp `--browser firefox` kullanın.
+Close every browser window and background process. If the issue continues on
+Windows, sign in with Firefox and use `--browser firefox`.
 
-UI'ı Chrome'da görüntülerken oturum kaynağı olarak Chrome seçilirse Chrome
-kendi cookie dosyasını kilitli tutar. UI'ı Edge/Firefox'ta açıp Chrome'u
-tamamen kapatın veya Firefox hesabını oturum kaynağı olarak kullanın.
+When the UI is open in Chrome and Chrome is also selected as the session source,
+Chrome keeps its cookie database locked. Open the UI in Edge or Firefox and
+close Chrome completely, or use a signed-in Firefox profile as the source.
 
 ## `Sign in to confirm you're not a bot`
 
-`yt-dlp` ve bu proje güncel olmalıdır:
+Keep `yt-dlp` and this project current:
 
 ```powershell
 uv lock --upgrade
 uv sync
 ```
 
-Ardından tarayıcıda YouTube'u normal şekilde açıp hesabın çalıştığını
-doğrulayın. CAPTCHA veya platform korumalarını otomatik aşmaya çalışmayın.
+Then open YouTube normally in the browser and confirm the account works. Do not
+attempt to automate CAPTCHA or platform-protection bypasses.
 
-## Bazı videolar atlanıyor
+## Some videos are skipped
 
-Bir playlistte silinmiş, bölgesel olarak engellenmiş veya hesabınıza kapalı
-öğeler olabilir. CLI kullanılabilir öğelere devam eder, sonunda başarısız
-öğeler olduğunu bildirir.
+A playlist may contain deleted, region-blocked, or account-restricted items.
+The CLI continues with accessible items and reports unavailable entries at the
+end.
 
-## Aynı parça yeniden inmiyor
+## A track is not downloaded again
 
-İndirme arşivi daha önce başarıyla indirilen video kimliklerini tutar.
-Koleksiyonu bilinçli olarak yeniden oluşturmak istiyorsanız farklı bir
-`--archive` yolu seçin. Mevcut arşivi silmeden önce yedeklemeyi düşünün.
+The download archive records IDs that completed successfully. Choose another
+`--archive` path if you intentionally want to rebuild a collection. Consider
+backing up an existing archive before removing it.
 
-## Hata raporu paylaşma
+## Sharing a bug report
 
-Şunları paylaşmayın:
+Never share:
 
-- cookie dosyaları veya tarayıcı profil dosyaları
-- Google hesabı bilgileri
-- private playlist URL'si/kimliği
-- kişisel klasör yolları
+- Cookie files or browser profile files
+- Google account details
+- Private playlist URLs or IDs
+- Personal folder paths
 
-Gerekirse private değerleri `[REDACTED]` ile değiştirin ve `doctor` çıktısını,
-işletim sistemi sürümünü, tekrar üretme adımlarını ekleyin.
+Replace private values with `[REDACTED]`, then include `doctor` output, the
+operating-system version, and reproduction steps.

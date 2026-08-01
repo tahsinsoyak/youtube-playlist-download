@@ -29,9 +29,9 @@ export function formatEta(value) {
   }
   const seconds = Math.round(value);
   if (seconds < 60) {
-    return `${seconds} sn`;
+    return `${seconds} sec`;
   }
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
-  return `${minutes} dk ${remainder} sn`;
+  return `${minutes} min ${remainder} sec`;
 }

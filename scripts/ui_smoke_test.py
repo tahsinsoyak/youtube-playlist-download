@@ -8,10 +8,12 @@ from playwright.sync_api import expect, sync_playwright
 
 BASE_URL = "http://127.0.0.1:8765"
 RESULTS_DIR = Path(__file__).resolve().parents[1] / "test-results"
+PUBLIC_ASSETS_DIR = Path(__file__).resolve().parents[1] / "docs" / "assets"
 
 
 def run() -> None:
     RESULTS_DIR.mkdir(exist_ok=True)
+    PUBLIC_ASSETS_DIR.mkdir(parents=True, exist_ok=True)
     console_errors: list[str] = []
     pending_requests: set[str] = set()
 
@@ -41,8 +43,8 @@ def run() -> None:
                 f"Network did not become idle: {sorted(pending_requests)}"
             ) from None
         expect(page).to_have_title("YouTube Playlist Download — Local UI + CLI")
-        expect(page.get_by_role("heading", name="Playlist’ini rafına indir.")).to_be_visible()
-        expect(page.get_by_role("heading", name="Arayüz veya terminal.")).to_be_visible()
+        expect(page.get_by_role("heading", name="Bring your playlist home.")).to_be_visible()
+        expect(page.get_by_role("heading", name="Interface or terminal.")).to_be_visible()
         expect(page.locator(".access-card code")).to_have_count(2)
         expect(page.locator("#health-badge")).to_have_attribute("data-connected", "true")
 
@@ -52,17 +54,17 @@ def run() -> None:
         expect(profile).to_be_enabled()
         expect(page.locator("#browser-hint")).to_contain_text("Firefox")
         page.locator("#browser").select_option("chrome")
-        expect(page.locator("#browser-hint")).to_contain_text("arayüz Chrome’da açık")
+        expect(page.locator("#browser-hint")).to_contain_text("interface is open in Chrome")
         page.locator("#browser").select_option("")
         expect(profile).to_be_disabled()
 
         dry_run = page.locator("#dry-run")
         mode_toggle = page.locator(".toggle")
         button_label = page.locator("#button-label")
-        expect(button_label).to_have_text("Önizlemeyi başlat")
+        expect(button_label).to_have_text("Start safe preview")
         mode_toggle.click()
         expect(dry_run).not_to_be_checked()
-        expect(button_label).to_have_text("MP3 indirmeyi başlat")
+        expect(button_label).to_have_text("Start MP3 download")
         mode_toggle.click()
         expect(dry_run).to_be_checked()
 
@@ -70,15 +72,15 @@ def run() -> None:
         page.locator("#confirm-rights").check()
         page.locator("#submit-button").click()
         expect(page.locator("#job-state")).to_have_text(
-            re.compile(r"^(TAMAMLANDI|HATA)$"),
+            re.compile(r"^(COMPLETE|ERROR)$"),
             timeout=90_000,
         )
-        if page.locator("#job-state").text_content() == "HATA":
+        if page.locator("#job-state").text_content() == "ERROR":
             raise AssertionError(page.locator("#job-message").text_content())
-        expect(page.locator("#job-message")).to_have_text("Önizleme tamamlandı")
+        expect(page.locator("#job-message")).to_have_text("Preview complete")
         expect(page.locator("#url")).to_have_value("https://www.youtube.com/watch?v=YE7VzlLtp-4")
         expect(dry_run).not_to_be_checked()
-        expect(button_label).to_have_text("Kontrol tamam — MP3 indir")
+        expect(button_label).to_have_text("Access confirmed — download MP3")
         page.screenshot(path=RESULTS_DIR / "ui-desktop.png", full_page=True)
 
         queue_snapshot = {
@@ -87,9 +89,9 @@ def run() -> None:
                 "sequence": 2,
                 "state": "running",
                 "progress": 42.5,
-                "message": "Ses akışı indiriliyor",
-                "current_item": "Current test song",
-                "playlist_title": "Test archive",
+                "message": "Downloading audio stream",
+                "current_item": "Night Drive — Demo Track 03",
+                "playlist_title": "Weekend Archive",
                 "downloaded_bytes": 512_000,
                 "total_bytes": 1_000_000,
                 "speed": 256_000,
@@ -98,7 +100,7 @@ def run() -> None:
                 "item_count": 10,
                 "queue_position": None,
                 "dry_run": False,
-                "output": "downloads",
+                "output": "Music Library",
             },
             "queued": [
                 {
@@ -107,7 +109,7 @@ def run() -> None:
                     "state": "queued",
                     "queue_position": 1,
                     "dry_run": False,
-                    "output": "downloads",
+                    "output": "Music Library",
                 }
             ],
             "recent": [],
@@ -124,23 +126,34 @@ def run() -> None:
         )
         queue_page.goto(BASE_URL)
         queue_page.wait_for_load_state("networkidle")
-        expect(queue_page.locator("#job-state")).to_have_text("KAYIT")
+        expect(queue_page.locator("#job-state")).to_have_text("RECORDING")
         expect(queue_page.locator("#job-percent")).to_have_text("%43")
         expect(queue_page.locator("#metric-track")).to_have_text("3 / 10")
         expect(queue_page.locator("#metric-speed")).to_have_text("250 KB/s")
-        expect(queue_page.locator("#metric-eta")).to_have_text("1 dk 15 sn")
-        expect(queue_page.locator("#queue-count")).to_have_text("1 bekliyor")
+        expect(queue_page.locator("#metric-eta")).to_have_text("1 min 15 sec")
+        expect(queue_page.locator("#queue-count")).to_have_text("1 waiting")
         expect(queue_page.locator("#queue-list li")).to_have_count(1)
         expect(queue_page.locator("#submit-button")).to_be_enabled()
-        expect(queue_page.locator("#button-label")).to_have_text("Önizlemeyi sıraya ekle")
+        expect(queue_page.locator("#button-label")).to_have_text("Queue preview")
         queue_page.screenshot(path=RESULTS_DIR / "ui-queue.png", full_page=True)
+        queue_page.screenshot(path=PUBLIC_ASSETS_DIR / "ui-desktop.png", full_page=True)
+        queue_page.locator(".deck").screenshot(path=PUBLIC_ASSETS_DIR / "ui-queue.png")
         queue_page.close()
 
         mobile = browser.new_page(viewport={"width": 390, "height": 844})
+        mobile.route(
+            "**/api/jobs",
+            lambda route: route.fulfill(
+                status=200,
+                content_type="application/json",
+                body=json.dumps(queue_snapshot),
+            ),
+        )
         mobile.goto(BASE_URL)
         mobile.wait_for_load_state("networkidle")
-        expect(mobile.get_by_role("heading", name="Playlist’ini rafına indir.")).to_be_visible()
+        expect(mobile.get_by_role("heading", name="Bring your playlist home.")).to_be_visible()
         mobile.screenshot(path=RESULTS_DIR / "ui-mobile.png", full_page=True)
+        mobile.screenshot(path=PUBLIC_ASSETS_DIR / "ui-mobile.png", full_page=True)
         has_overflow = mobile.evaluate("document.documentElement.scrollWidth > window.innerWidth")
         overflow_elements = mobile.evaluate(
             """[...document.querySelectorAll('*')]

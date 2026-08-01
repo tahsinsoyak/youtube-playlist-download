@@ -60,7 +60,7 @@ def progress_changes(event: dict[str, Any]) -> dict[str, Any]:
             progress=_overall_progress(downloaded, total, item_index, item_count),
             speed=_positive_number(event.get("speed")),
             eta=_positive_integer(event.get("eta")),
-            message="Ses akışı indiriliyor",
+            message="Downloading audio stream",
         )
     elif status == "finished":
         changes.update(
@@ -73,6 +73,6 @@ def progress_changes(event: dict[str, Any]) -> dict[str, Any]:
             ),
             speed=None,
             eta=None,
-            message="MP3 hazırlanıyor ve etiketleniyor",
+            message="Preparing and tagging MP3",
         )
     return changes

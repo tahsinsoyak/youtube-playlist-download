@@ -25,21 +25,21 @@ def _optional_text(payload: dict[str, Any], key: str, max_length: int) -> str | 
     if value in (None, ""):
         return None
     if not isinstance(value, str) or len(value) > max_length:
-        raise RequestError(f"{key} alanı geçersiz.")
+        raise RequestError(f"Invalid {key} field.")
     return value.strip() or None
 
 
 def _boolean(payload: dict[str, Any], key: str, default: bool) -> bool:
     value = payload.get(key, default)
     if not isinstance(value, bool):
-        raise RequestError(f"{key} true veya false olmalıdır.")
+        raise RequestError(f"{key} must be true or false.")
     return value
 
 
 def parse_download_request(payload: dict[str, Any]) -> DownloadRequest:
     """Convert a bounded JSON object into the shared immutable model."""
     if payload.get("confirm_rights") is not True:
-        raise RequestError("İndirme hakkınız olduğunu onaylamalısınız.")
+        raise RequestError("You must confirm that you are authorized to download this content.")
 
     url = _optional_text(payload, "url", 2_048)
     output = _optional_text(payload, "output", 500) or "downloads"
@@ -56,9 +56,11 @@ def parse_download_request(payload: dict[str, Any]) -> DownloadRequest:
         raise RequestError(str(error)) from error
 
     if playlist_items and not PLAYLIST_ITEMS_PATTERN.fullmatch(playlist_items):
-        raise RequestError("Playlist seçimi yalnızca sayı, virgül, tire ve iki nokta içerebilir.")
+        raise RequestError(
+            "Playlist selection may contain only numbers, commas, hyphens, and colons."
+        )
     if "\x00" in output:
-        raise RequestError("Çıktı klasörü geçersiz.")
+        raise RequestError("Invalid output folder.")
 
     output_dir = Path(output).expanduser()
     return DownloadRequest(

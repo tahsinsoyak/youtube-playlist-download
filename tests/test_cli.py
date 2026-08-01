@@ -64,7 +64,7 @@ def test_rejects_non_youtube_url() -> None:
     )
 
     assert result.exit_code == 2
-    assert "Geçersiz seçenek" in result.stdout
+    assert "Invalid option" in result.stdout
 
 
 def test_ui_command_starts_local_server_without_opening_browser() -> None:

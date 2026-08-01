@@ -23,7 +23,7 @@ class Check:
 def _command_version(command: str) -> tuple[bool, str]:
     executable = shutil.which(command)
     if executable is None:
-        return False, "Bulunamadı"
+        return False, "Not found"
 
     result = subprocess.run(
         [executable, "-version"],
@@ -53,7 +53,7 @@ def run_checks() -> list[Check]:
             (
                 f"{js_runtime.name}: {js_runtime.version_text}"
                 if js_runtime
-                else "Deno 2.3+ veya Node.js 22+ bulunamadı"
+                else "Deno 2.3+ or Node.js 22+ was not found"
             ),
         ),
         Check("FFmpeg", ffmpeg_ok, ffmpeg_detail),

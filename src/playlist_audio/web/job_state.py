@@ -21,7 +21,7 @@ class Job:
     request: DownloadRequest
     state: str = "queued"
     progress: float | None = None
-    message: str = "Sıraya alındı"
+    message: str = "Added to queue"
     current_item: str | None = None
     playlist_title: str | None = None
     downloaded_bytes: int = 0

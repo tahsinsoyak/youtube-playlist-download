@@ -28,7 +28,7 @@ def test_progress_event_includes_overall_playlist_metrics() -> None:
         "progress": 37.5,
         "speed": 128_000.5,
         "eta": 12,
-        "message": "Ses akışı indiriliyor",
+        "message": "Downloading audio stream",
     }
 
 

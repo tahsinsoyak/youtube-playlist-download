@@ -100,9 +100,7 @@ class JobManager:
     def _run_job(self, job_id: str) -> None:
         with self._lock:
             request = self._jobs[job_id].request
-        initial = (
-            "Playlist erişimi kontrol ediliyor" if request.dry_run else "Playlist hazırlanıyor"
-        )
+        initial = "Checking access" if request.dry_run else "Preparing download"
         self._update(job_id, state="running", message=initial, started_at=now_iso())
 
         try:
@@ -125,18 +123,18 @@ class JobManager:
             self._update(
                 job_id,
                 state="failed",
-                message="Beklenmeyen bir yerel hata oluştu. Terminal çıktısını kontrol edin.",
+                message="An unexpected local error occurred. Check the terminal output.",
                 progress=None,
                 speed=None,
                 eta=None,
                 finished_at=now_iso(),
             )
         else:
-            message = "Önizleme tamamlandı" if request.dry_run else "İndirme tamamlandı"
+            message = "Preview complete" if request.dry_run else "Download complete"
             if outcome and outcome.unavailable_items:
                 message = (
-                    f"{message} · {outcome.available_items} erişilebilir, "
-                    f"{outcome.unavailable_items} kullanılamayan öğe atlandı"
+                    f"{message} · {outcome.available_items} accessible, "
+                    f"{outcome.unavailable_items} unavailable item(s) skipped"
                 )
             self._update(
                 job_id,

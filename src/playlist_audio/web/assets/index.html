@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
     <meta
       name="description"
-      content="İzinli YouTube playlistlerini yerel bilgisayarınızda MP3 olarak arşivleyin."
+      content="Archive authorized YouTube playlists as MP3 files on your local computer."
     >
     <title>YouTube Playlist Download — Local UI + CLI</title>
     <link rel="stylesheet" href="/assets/base.css">
@@ -20,7 +20,7 @@
     <div class="grain" aria-hidden="true"></div>
 
     <header class="topbar">
-      <a class="brand" href="/" aria-label="YouTube Playlist Download ana sayfa">
+      <a class="brand" href="/" aria-label="YouTube Playlist Download home">
         <span class="brand-mark" aria-hidden="true">YD</span>
         <span>
           <strong>YouTube Playlist Download</strong>
@@ -29,53 +29,53 @@
       </a>
       <div class="local-badge" id="health-badge">
         <span class="status-led" aria-hidden="true"></span>
-        <span>Yalnızca bu cihaz</span>
+        <span>Local device only</span>
       </div>
     </header>
 
     <main>
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow">LOCAL UI · CLI · YT-DLP ENGINE</p>
-        <h1 id="page-title">Playlist’ini<br><em>rafına indir.</em></h1>
+        <h1 id="page-title">Bring your<br><em>playlist home.</em></h1>
         <p class="lede">
-          Tarayıcıdan URL’yi yapıştır veya terminalden çalıştır. Önce erişimi
-          kontrol et, sonra yüksek kaliteli MP3 arşivini yerel olarak oluştur.
+          Paste a URL in your browser or run it from the terminal. Check access
+          first, then build a high-quality MP3 archive entirely on this device.
         </p>
 
-        <div class="signal-card" aria-label="İşlem özellikleri">
+        <div class="signal-card" aria-label="Processing features">
           <div>
             <span class="signal-number">01</span>
-            <p>En iyi ses akışı</p>
+            <p>Best audio stream</p>
           </div>
           <div>
             <span class="signal-number">V0</span>
-            <p>Yüksek kalite MP3</p>
+            <p>High-quality MP3</p>
           </div>
           <div>
             <span class="signal-number">ID3</span>
-            <p>Kapak + metadata</p>
+            <p>Cover + metadata</p>
           </div>
         </div>
 
         <section class="access-modes" aria-labelledby="access-title">
           <div class="access-heading">
             <p class="deck-kicker">TWO WAYS IN</p>
-            <h2 id="access-title">Arayüz veya terminal.</h2>
+            <h2 id="access-title">Interface or terminal.</h2>
           </div>
           <div class="access-grid">
             <article class="access-card is-recommended">
               <span class="access-index">UI</span>
               <div>
-                <strong>Yerel web arayüzü</strong>
-                <small>Günlük kullanım · kuyruk + canlı ilerleme</small>
+                <strong>Local web interface</strong>
+                <small>Everyday use · queue + live progress</small>
                 <code>uv run youtube-playlist-download ui</code>
               </div>
             </article>
             <article class="access-card">
               <span class="access-index">CLI</span>
               <div>
-                <strong>Komut satırı</strong>
-                <small>Otomasyon · scriptler + gelişmiş seçenekler</small>
+                <strong>Command line</strong>
+                <small>Automation · scripts + advanced options</small>
                 <code>uv run youtube-playlist-download --help</code>
               </div>
             </article>
@@ -87,14 +87,14 @@
         <div class="deck-header">
           <div>
             <p class="deck-kicker">INPUT CHANNEL</p>
-            <h2 id="deck-title">Yeni arşiv işi</h2>
+            <h2 id="deck-title">New archive job</h2>
           </div>
           <div class="deck-screws" aria-hidden="true"><i></i><i></i></div>
         </div>
 
         <form id="download-form">
           <label class="field field-url" for="url">
-            <span>Playlist veya video URL’si</span>
+            <span>Playlist or video URL</span>
             <input
               id="url"
               name="url"
@@ -109,7 +109,7 @@
 
           <div class="field-grid">
             <label class="field" for="browser">
-              <span>Oturum kaynağı</span>
+              <span>Session source</span>
               <select id="browser" name="browser">
                 <option value="">Public playlist</option>
                 <option value="firefox">Firefox</option>
@@ -124,51 +124,51 @@
             </label>
 
             <label class="field" for="output">
-              <span>Çıktı klasörü</span>
+              <span>Output folder</span>
               <input id="output" name="output" type="text" value="downloads" required>
             </label>
           </div>
 
           <div class="mode-switch">
             <div>
-              <strong>Güvenli önizleme</strong>
-              <small>Dosya yazmadan playlist erişimini kontrol eder.</small>
+              <strong>Safe preview</strong>
+              <small>Check playlist access without writing media files.</small>
             </div>
             <label class="toggle" for="dry-run">
               <input id="dry-run" name="dry_run" type="checkbox" checked>
               <span aria-hidden="true"></span>
-              <b>Açık</b>
+              <b>On</b>
             </label>
           </div>
 
           <details>
             <summary>
-              <span>İnce ayarlar</span>
-              <small>Kalite, sıra ve etiketler</small>
+              <span>Fine controls</span>
+              <small>Quality, positions, and tags</small>
             </summary>
             <div class="advanced-grid">
               <label class="field" for="quality">
-                <span>MP3 VBR kalitesi</span>
+                <span>MP3 VBR quality</span>
                 <select id="quality" name="audio_quality">
-                  <option value="0">0 — En iyi</option>
-                  <option value="1">1 — Çok yüksek</option>
-                  <option value="2">2 — Yüksek</option>
-                  <option value="5">5 — Orta</option>
+                  <option value="0">0 — Best</option>
+                  <option value="1">1 — Very high</option>
+                  <option value="2">2 — High</option>
+                  <option value="5">5 — Medium</option>
                 </select>
               </label>
 
               <label class="field" for="playlist-items">
-                <span>Playlist sırası</span>
+                <span>Playlist positions</span>
                 <input
                   id="playlist-items"
                   name="playlist_items"
                   type="text"
-                  placeholder="Tümü veya 1:10"
+                  placeholder="All or 1:10"
                 >
               </label>
 
               <label class="field field-wide" for="browser-profile">
-                <span>Tarayıcı profili <small>(isteğe bağlı)</small></span>
+                <span>Browser profile <small>(optional)</small></span>
                 <input
                   id="browser-profile"
                   name="browser_profile"
@@ -181,11 +181,11 @@
               <div class="check-row field-wide">
                 <label>
                   <input name="embed_thumbnail" type="checkbox" checked>
-                  <span>Kapak görseli</span>
+                  <span>Cover art</span>
                 </label>
                 <label>
                   <input name="embed_metadata" type="checkbox" checked>
-                  <span>Medya metadata’sı</span>
+                  <span>Media metadata</span>
                 </label>
               </div>
             </div>
@@ -194,19 +194,19 @@
           <label class="rights-check" for="confirm-rights">
             <input id="confirm-rights" name="confirm_rights" type="checkbox" required>
             <span>
-              Bu içeriği indirme ve dönüştürme hakkım olduğunu onaylıyorum.
+              I confirm that I am authorized to download and convert this content.
               <a href="https://www.youtube.com/static?template=terms" target="_blank" rel="noreferrer">
-                Kullanım sınırları
+                Usage boundaries
               </a>
             </span>
           </label>
 
           <button class="primary-action" id="submit-button" type="submit">
-            <span id="button-label">Önizlemeyi başlat</span>
+            <span id="button-label">Start safe preview</span>
             <span class="button-icon" aria-hidden="true">↘</span>
           </button>
           <small class="queue-help">
-            Yeni işler devam eden indirmeyi kesmeden sıraya eklenir.
+            New jobs join the queue without interrupting the active download.
           </small>
         </form>
 
@@ -218,28 +218,28 @@
           </div>
           <div class="job-copy">
             <div>
-              <span class="job-state" id="job-state">HAZIRLANIYOR</span>
+              <span class="job-state" id="job-state">PREPARING</span>
               <span class="job-percent" id="job-percent"></span>
             </div>
-            <strong id="job-message">Playlist kontrol ediliyor</strong>
+            <strong id="job-message">Checking playlist</strong>
             <small id="job-item"></small>
           </div>
           <progress id="job-progress" max="100" value="0"></progress>
           <div class="job-metrics" id="job-metrics">
             <div>
-              <span>PARÇA</span>
+              <span>TRACK</span>
               <strong id="metric-track">—</strong>
             </div>
             <div>
-              <span>HIZ</span>
+              <span>SPEED</span>
               <strong id="metric-speed">—</strong>
             </div>
             <div>
-              <span>AKTARILAN</span>
+              <span>TRANSFERRED</span>
               <strong id="metric-bytes">—</strong>
             </div>
             <div>
-              <span>KALAN</span>
+              <span>REMAINING</span>
               <strong id="metric-eta">—</strong>
             </div>
           </div>
@@ -249,9 +249,9 @@
           <header>
             <div>
               <p class="deck-kicker">NEXT CHANNEL</p>
-              <h3 id="queue-title">İndirme kuyruğu</h3>
+              <h3 id="queue-title">Download queue</h3>
             </div>
-            <span class="queue-count" id="queue-count">0 bekliyor</span>
+            <span class="queue-count" id="queue-count">0 waiting</span>
           </header>
           <ol class="queue-list" id="queue-list"></ol>
         </section>
@@ -259,7 +259,7 @@
     </main>
 
     <footer>
-      <p>LOCALHOST · COOKIE DOSYASI YOK · PAROLA YOK</p>
+      <p>LOCALHOST · NO COOKIE FILE · NO PASSWORD</p>
       <p>UI + CLI · yt-dlp + FFmpeg</p>
     </footer>
   </body>

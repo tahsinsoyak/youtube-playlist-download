@@ -1,39 +1,38 @@
-# Hukuki ve etik sınırlar
+# Legal and ethical boundaries
 
-Bu belge hukuki danışmanlık değildir. İçeriği indirme ve dönüştürme hakkının
-bulunduğunu doğrulamak kullanıcının sorumluluğundadır.
+This document is not legal advice. Users are responsible for confirming they
+have the right to download and convert content.
 
-## Uygun kullanım örnekleri
+## Appropriate-use examples
 
-- Kendi yüklediğiniz video ve müzikler
-- Hak sahibinden açık indirme/dönüştürme izni aldığınız içerikler
-- Uygulanabilir lisansı indirmeye ve dönüştürmeye izin veren içerikler
-- Yürürlükteki hukukun açıkça izin verdiği kullanım
+- Videos or music you uploaded yourself
+- Content for which the rights holder granted download/conversion permission
+- Content whose applicable license permits download and conversion
+- Uses expressly permitted by applicable law
 
-## Bu projenin amacı dışındaki kullanımlar
+## Outside this project's purpose
 
-- İzinsiz telifli müzik arşivlemek veya dağıtmak
-- Ücretli/üyelik tabanlı erişim kontrollerini aşmak
-- DRM veya teknik koruma önlemlerini etkisizleştirmek
-- Başka bir kişinin hesabına ya da private playlistine yetkisiz erişmek
-- İndirilen dosyaları lisanssız biçimde yeniden yayımlamak
+- Archiving or distributing copyrighted music without permission
+- Bypassing paid or membership-based access controls
+- Defeating DRM or technical protection measures
+- Accessing another person's account or private playlist without authorization
+- Republishing downloaded files without a valid license
 
-## YouTube koşulları
+## YouTube terms
 
-YouTube Hizmet Şartları; içeriğin indirilmesini ancak hizmetin açıkça izin
-verdiği, YouTube ve ilgili hak sahiplerinin önceden yazılı izin verdiği veya
-uygulanabilir hukukun izin verdiği hâllerle sınırlar. Otomatik erişime ilişkin
-ayrı kısıtlamalar da bulunur.
+YouTube's Terms of Service limit downloading to cases where the service
+expressly permits it, YouTube and the relevant rights holders provide prior
+written permission, or applicable law allows it. Separate restrictions apply
+to automated access.
 
-Bu yüzden uygulama her çalıştırmada `--confirm-rights` onayı ister. Bu onay
-size yeni bir hak vermez; yalnızca sorumluluğu görünür kılar.
+The app therefore requires `--confirm-rights` for every run. This confirmation
+does not grant new rights; it makes user responsibility explicit.
 
-Resmî kaynaklar:
+Official sources:
 
 - [YouTube Terms of Service](https://www.youtube.com/static?template=terms)
 - [YouTube offline video FAQ](https://support.google.com/youtube/answer/7381437)
 - [YouTube Premium benefits](https://support.google.com/youtube/answer/6308116)
 
-YouTube Premium'un çevrimdışı indirmeleri YouTube/YouTube Music uygulaması
-içinde kullanılmak üzere tasarlanmıştır; YouTube uygulaması MP3 dışa aktarma
-özelliği sunmaz.
+YouTube Premium offline downloads are designed for playback inside YouTube and
+YouTube Music. The YouTube app does not provide MP3 export.

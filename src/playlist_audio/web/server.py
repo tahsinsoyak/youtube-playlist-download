@@ -31,9 +31,9 @@ def run_ui(port: int, open_browser: bool = True) -> None:
     actual_port = server.server_port
     url = f"http://{LOOPBACK_HOST}:{actual_port}"
 
-    console.print("\n[bold]YouTube Playlist Download UI hazır.[/bold]")
-    console.print(f"Adres: [link={url}]{url}[/link]")
-    console.print("Yalnızca bu bilgisayardan erişilebilir. Kapatmak için Ctrl+C.\n")
+    console.print("\n[bold]YouTube Playlist Download UI is ready.[/bold]")
+    console.print(f"Address: [link={url}]{url}[/link]")
+    console.print("Available only on this computer. Press Ctrl+C to stop.\n")
 
     if open_browser:
         threading.Timer(0.35, webbrowser.open, args=(url,)).start()
@@ -41,6 +41,6 @@ def run_ui(port: int, open_browser: bool = True) -> None:
     try:
         server.serve_forever(poll_interval=0.25)
     except KeyboardInterrupt:
-        console.print("\n[yellow]Arayüz kapatılıyor…[/yellow]")
+        console.print("\n[yellow]Stopping the interface…[/yellow]")
     finally:
         server.server_close()

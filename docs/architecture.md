@@ -1,43 +1,43 @@
-# Mimari ve geliştirme
+# Architecture and development
 
-## Bileşenler
+## Components
 
 ```text
-UI girdisi
-  -> web/handler.py     Loopback HTTP ve güvenlik başlıkları
-  -> web/request_parser.py  JSON doğrulama
-  -> web/jobs.py        Tek çalışanlı FIFO iş kuyruğu
-  -> web/job_state.py   API'ye açılan güvenli iş durumu
-  -> web/progress.py    Hız, ETA ve playlist ilerleme hesabı
-  -> web/assets/        HTML, CSS ve JavaScript
+UI input
+  -> web/handler.py         Loopback HTTP and security headers
+  -> web/request_parser.py  JSON validation
+  -> web/jobs.py            Single-worker FIFO job queue
+  -> web/job_state.py       Safe job state exposed through the API
+  -> web/progress.py        Speed, ETA, and playlist progress calculations
+  -> web/assets/            HTML, CSS, and JavaScript
 
-CLI veya doğrulanmış UI isteği
-  -> validation.py     URL ve seçenek doğrulama
-  -> models.py         Değişmez istek modeli
-  -> options.py        yt-dlp seçenek üretimi
-  -> downloader.py     yt-dlp çalışma adaptörü
-  -> runtime.py        Deno/Node seçimi
-  -> FFmpeg            MP3 dönüştürme ve metadata
+CLI or validated UI request
+  -> validation.py          URL and option validation
+  -> models.py              Immutable request model
+  -> options.py             yt-dlp option construction
+  -> downloader.py          yt-dlp runtime adapter
+  -> runtime.py             Deno/Node selection
+  -> FFmpeg                 MP3 conversion and metadata
 
 doctor
-  -> preflight.py      Yerel bağımlılık kontrolleri
+  -> preflight.py           Local dependency diagnostics
 ```
 
-Private erişim için seçilen tarayıcı ve profil bilgisi `yt-dlp` API'sine
-iletilir. Uygulama cookie içeriğini doğrudan okumaz, yazmaz veya loglamaz.
+For private access, the selected browser and profile are passed to the `yt-dlp`
+API. The app does not directly read, write, or log cookie contents.
 
-## Dosya sorumlulukları
+## File responsibilities
 
-- `src/playlist_audio/cli.py`: kullanıcı arayüzü ve exit kodları
-- `src/playlist_audio/validation.py`: saf girdi doğrulama fonksiyonları
-- `src/playlist_audio/options.py`: saf yt-dlp seçenek üretimi
-- `src/playlist_audio/downloader.py`: dosya sistemi ve yt-dlp yan etkileri
-- `src/playlist_audio/preflight.py`: yerel araç tanılama
-- `src/playlist_audio/runtime.py`: desteklenen JavaScript runtime seçimi
-- `src/playlist_audio/web/`: localhost UI, API, iş durumu ve statik varlıklar
-- `tests/`: ağ erişimi olmadan birim testleri
+- `src/playlist_audio/cli.py`: command interface and exit codes
+- `src/playlist_audio/validation.py`: pure input validation
+- `src/playlist_audio/options.py`: pure yt-dlp option construction
+- `src/playlist_audio/downloader.py`: filesystem and yt-dlp side effects
+- `src/playlist_audio/preflight.py`: local tool diagnostics
+- `src/playlist_audio/runtime.py`: supported JavaScript-runtime selection
+- `src/playlist_audio/web/`: localhost UI, API, job state, and static assets
+- `tests/`: unit tests that do not require network access
 
-## Geliştirme kurulumu
+## Development setup
 
 ```powershell
 uv sync --extra dev
@@ -47,19 +47,19 @@ uv run ruff format --check .
 uv run playwright install chromium
 ```
 
-## Tasarım kararları
+## Design decisions
 
-- Yalnızca localhost web UI: oturum verisini uzak sunucuya taşımamak için.
-- `youtube-dl` yerine `yt-dlp`: aktif bakım, modern YouTube desteği ve tarayıcı
-  cookie entegrasyonu için.
-- Cookie dosyası yok: yanlışlıkla Git'e ekleme ve paylaşma riskini azaltmak için.
-- Arşiv dosyası: büyük playlistlerde güvenli, tekrar çalıştırılabilir indirmeler.
-- Tek çalışanlı kuyruk: yeni playlistleri kabul ederken çıktı çakışmasını önlemek.
-- Zorunlu hak onayı: public dağıtıma uygun sorumlu kullanım sınırı.
+- Localhost-only web UI keeps session data away from remote servers.
+- `yt-dlp` replaces `youtube-dl` for active maintenance, modern YouTube support,
+  and browser-cookie integration.
+- No cookie files reduces accidental commits and sharing.
+- A download archive makes large playlist runs repeatable and duplicate-safe.
+- A single-worker queue prevents output collisions while accepting new jobs.
+- Explicit rights confirmation defines a responsible public-distribution boundary.
 
-## Gelecek geliştirmeler
+## Future improvements
 
-- M4A/Opus gibi yeniden kodlama gerektirmeyen çıktı seçenekleri
-- Playlist manifesti ve değişiklik raporu
-- MP3 etiketlerini etkileşimli düzeltme
-- İmzalı release paketleri
+- M4A/Opus outputs that avoid re-encoding
+- Playlist manifests and change reports
+- Interactive MP3 tag correction
+- Signed release packages

@@ -63,7 +63,7 @@ def test_chrome_cookie_lock_has_actionable_error(tmp_path: Path) -> None:
 
     with (
         patch("playlist_audio.downloader.YoutubeDL", return_value=ydl),
-        pytest.raises(DownloadFailed, match="cookie veritabanını kilitliyor"),
+        pytest.raises(DownloadFailed, match="locks the cookie database"),
     ):
         download(request)
 
@@ -103,6 +103,6 @@ def test_download_fails_when_no_playlist_entry_is_available(tmp_path: Path) -> N
 
     with (
         patch("playlist_audio.downloader.YoutubeDL", return_value=ydl),
-        pytest.raises(DownloadFailed, match="erişilebilir bir öğe bulunamadı"),
+        pytest.raises(DownloadFailed, match="no accessible items"),
     ):
         download(request)
