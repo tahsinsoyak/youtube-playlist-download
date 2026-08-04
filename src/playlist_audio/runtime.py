@@ -25,6 +25,14 @@ def _version_tuple(text: str) -> tuple[int, ...]:
     return tuple(int(part) for part in match.group().split(".")) if match else ()
 
 
+def _meets_minimum(version: tuple[int, ...], minimum: tuple[int, ...]) -> bool:
+    """Compare version tuples of unequal length, e.g. (2, 3) against (2, 3, 0)."""
+    length = max(len(version), len(minimum))
+    padded_version = version + (0,) * (length - len(version))
+    padded_minimum = minimum + (0,) * (length - len(minimum))
+    return padded_version >= padded_minimum
+
+
 def find_javascript_runtime() -> JavaScriptRuntime | None:
     """Prefer Deno, then accept a sufficiently recent Node.js installation."""
     for name, minimum in RUNTIME_REQUIREMENTS:
@@ -40,7 +48,7 @@ def find_javascript_runtime() -> JavaScriptRuntime | None:
         )
         first_line = (result.stdout or result.stderr).splitlines()
         version_text = first_line[0] if first_line else ""
-        if result.returncode == 0 and _version_tuple(version_text) >= minimum:
+        if result.returncode == 0 and _meets_minimum(_version_tuple(version_text), minimum):
             return JavaScriptRuntime(name=name, version_text=version_text)
     return None
 
