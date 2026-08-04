@@ -55,3 +55,15 @@ def test_can_disable_optional_embedding(tmp_path: Path) -> None:
 
 def test_default_archive_is_inside_output() -> None:
     assert default_archive_path(Path("library")) == Path("library/.playlist-audio-archive.txt")
+
+
+def test_playlist_items_pass_through_when_set(tmp_path: Path) -> None:
+    options = build_ydl_options(make_request(tmp_path, playlist_items="1:10"))
+
+    assert options["playlist_items"] == "1:10"
+
+
+def test_playlist_items_absent_when_not_set(tmp_path: Path) -> None:
+    options = build_ydl_options(make_request(tmp_path))
+
+    assert "playlist_items" not in options
