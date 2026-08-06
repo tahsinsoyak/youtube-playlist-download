@@ -42,3 +42,14 @@ def test_rejects_invalid_playlist_ranges(playlist_items: str) -> None:
 def test_rejects_unknown_browser() -> None:
     with pytest.raises(RequestError):
         parse_download_request({**VALID_PAYLOAD, "browser": "unknown"})
+
+
+def test_rejects_browser_profile_without_browser() -> None:
+    with pytest.raises(RequestError, match="Select --browser"):
+        parse_download_request({**VALID_PAYLOAD, "browser_profile": "Default"})
+
+
+@pytest.mark.parametrize("field", ["dry_run", "embed_thumbnail", "embed_metadata"])
+def test_rejects_non_boolean_flags(field: str) -> None:
+    with pytest.raises(RequestError, match="must be true or false"):
+        parse_download_request({**VALID_PAYLOAD, field: "yes"})
