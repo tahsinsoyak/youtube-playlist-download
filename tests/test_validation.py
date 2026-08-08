@@ -15,6 +15,7 @@ from playlist_audio.validation import (
         "https://www.youtube.com/playlist?list=PL123",
         "https://music.youtube.com/playlist?list=PL123",
         "https://youtu.be/abc123",
+        "https://WWW.YOUTUBE.COM/watch?v=abc123",
     ],
 )
 def test_accepts_supported_youtube_urls(url: str) -> None:
@@ -41,6 +42,8 @@ def test_audio_quality_range() -> None:
 
     with pytest.raises(ValidationError):
         validate_audio_quality("11")
+    with pytest.raises(ValidationError):
+        validate_audio_quality("-1")
 
 
 def test_profile_requires_browser() -> None:
