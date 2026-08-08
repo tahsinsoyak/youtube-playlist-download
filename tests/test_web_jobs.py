@@ -3,7 +3,7 @@ from threading import Event
 from time import monotonic, sleep
 from unittest.mock import patch
 
-from playlist_audio.downloader import DownloadOutcome
+from playlist_audio.downloader import DownloadFailed, DownloadOutcome
 from playlist_audio.models import DownloadRequest
 from playlist_audio.web.jobs import JobManager
 
@@ -55,6 +55,50 @@ def test_job_completes_without_exposing_source_url(tmp_path: Path) -> None:
     assert result["unavailable_items"] == 1
     assert "1 unavailable item(s) skipped" in result["message"]
     assert "url" not in result
+
+
+def test_job_failure_surfaces_error_message(tmp_path: Path) -> None:
+    finished = Event()
+
+    def fake_download(request, progress_hook=None) -> DownloadOutcome:
+        finished.set()
+        raise DownloadFailed("Could not read the Chrome session.")
+
+    manager = JobManager()
+    with patch("playlist_audio.web.jobs.download", side_effect=fake_download):
+        created = manager.create(make_request(tmp_path))
+        assert finished.wait(timeout=2)
+        deadline = monotonic() + 2
+        while manager.get(created["id"])["state"] == "running" and monotonic() < deadline:
+            sleep(0.01)
+
+    result = manager.get(created["id"])
+    assert result is not None
+    assert result["state"] == "failed"
+    assert result["message"] == "Could not read the Chrome session."
+    assert result["progress"] is None
+
+
+def test_unexpected_job_error_does_not_leak_internal_details(tmp_path: Path) -> None:
+    finished = Event()
+
+    def fake_download(request, progress_hook=None) -> DownloadOutcome:
+        finished.set()
+        raise RuntimeError("stack trace with a local file path")
+
+    manager = JobManager()
+    with patch("playlist_audio.web.jobs.download", side_effect=fake_download):
+        created = manager.create(make_request(tmp_path))
+        assert finished.wait(timeout=2)
+        deadline = monotonic() + 2
+        while manager.get(created["id"])["state"] == "running" and monotonic() < deadline:
+            sleep(0.01)
+
+    result = manager.get(created["id"])
+    assert result is not None
+    assert result["state"] == "failed"
+    assert "stack trace" not in result["message"]
+    assert result["message"] == "An unexpected local error occurred. Check the terminal output."
 
 
 def test_jobs_added_during_download_run_in_fifo_order(tmp_path: Path) -> None:
