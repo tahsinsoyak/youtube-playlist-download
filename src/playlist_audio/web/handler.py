@@ -48,6 +48,24 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
             else:
                 self._json(HTTPStatus.NOT_FOUND, {"error": "Page not found."})
 
+        def do_DELETE(self) -> None:  # noqa: N802
+            path = urlsplit(self.path).path
+            if not path.startswith("/api/jobs/"):
+                self._json(HTTPStatus.NOT_FOUND, {"error": "Page not found."})
+                return
+            job_id = path.removeprefix("/api/jobs/")
+            if manager.get(job_id) is None:
+                self._json(HTTPStatus.NOT_FOUND, {"error": "Job not found."})
+                return
+            cancelled = manager.cancel(job_id)
+            if cancelled:
+                self._json(HTTPStatus.OK, cancelled)
+            else:
+                self._json(
+                    HTTPStatus.CONFLICT,
+                    {"error": "Job cannot be cancelled; it may have already started."},
+                )
+
         def do_POST(self) -> None:  # noqa: N802
             path = urlsplit(self.path).path
             if path != "/api/jobs":

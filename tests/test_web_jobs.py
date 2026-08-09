@@ -101,6 +101,60 @@ def test_unexpected_job_error_does_not_leak_internal_details(tmp_path: Path) -> 
     assert result["message"] == "An unexpected local error occurred. Check the terminal output."
 
 
+def test_cancel_removes_a_queued_job(tmp_path: Path) -> None:
+    first_started = Event()
+    release_first = Event()
+
+    def fake_download(request, progress_hook=None) -> DownloadOutcome:
+        first_started.set()
+        assert release_first.wait(timeout=2)
+        return DownloadOutcome(total_items=1, available_items=1, unavailable_items=0)
+
+    manager = JobManager()
+    with patch("playlist_audio.web.jobs.download", side_effect=fake_download):
+        active = manager.create(make_request(tmp_path))
+        assert first_started.wait(timeout=2)
+        queued = manager.create(make_request(tmp_path))
+
+        cancelled = manager.cancel(queued["id"])
+        assert cancelled is not None
+        assert cancelled["state"] == "cancelled"
+
+        snapshot = manager.snapshot()
+        assert snapshot["queued"] == []
+        assert manager.get(queued["id"])["state"] == "cancelled"
+
+        release_first.set()
+        deadline = monotonic() + 2
+        while manager.get(active["id"])["state"] == "running" and monotonic() < deadline:
+            sleep(0.01)
+
+
+def test_cannot_cancel_the_active_job(tmp_path: Path) -> None:
+    started = Event()
+    release = Event()
+
+    def fake_download(request, progress_hook=None) -> DownloadOutcome:
+        started.set()
+        assert release.wait(timeout=2)
+        return DownloadOutcome(total_items=1, available_items=1, unavailable_items=0)
+
+    manager = JobManager()
+    with patch("playlist_audio.web.jobs.download", side_effect=fake_download):
+        active = manager.create(make_request(tmp_path))
+        assert started.wait(timeout=2)
+
+        assert manager.cancel(active["id"]) is None
+        assert manager.get(active["id"])["state"] == "running"
+
+        release.set()
+
+
+def test_cancel_unknown_job_returns_none() -> None:
+    manager = JobManager()
+    assert manager.cancel("does-not-exist") is None
+
+
 def test_jobs_added_during_download_run_in_fifo_order(tmp_path: Path) -> None:
     first_started = Event()
     release_first = Event()
