@@ -12,10 +12,17 @@ class FakeManager:
     def get(self, job_id: str) -> dict[str, Any] | None:
         if job_id == "known":
             return {"id": "known", "state": "completed"}
+        if job_id == "queued":
+            return {"id": "queued", "state": "queued"}
         return None
 
     def create(self, request) -> dict[str, Any]:
         return {"id": "new-job", "state": "queued", "dry_run": request.dry_run}
+
+    def cancel(self, job_id: str) -> dict[str, Any] | None:
+        if job_id == "queued":
+            return {"id": "queued", "state": "cancelled"}
+        return None
 
     def snapshot(self) -> dict[str, Any]:
         return {
@@ -93,3 +100,34 @@ def test_rejects_cross_origin_job() -> None:
             assert error.code == 403
         else:
             raise AssertionError("Cross-origin request should be rejected")
+
+
+def test_deletes_a_queued_job() -> None:
+    with running_server() as base_url:
+        request = Request(f"{base_url}/api/jobs/queued", method="DELETE")
+        with urlopen(request, timeout=2) as response:
+            result = json.load(response)
+            assert response.status == 200
+            assert result["state"] == "cancelled"
+
+
+def test_delete_unknown_job_returns_404() -> None:
+    with running_server() as base_url:
+        request = Request(f"{base_url}/api/jobs/missing", method="DELETE")
+        try:
+            urlopen(request, timeout=2)
+        except HTTPError as error:
+            assert error.code == 404
+        else:
+            raise AssertionError("Unknown job should return 404")
+
+
+def test_delete_non_cancellable_job_returns_409() -> None:
+    with running_server() as base_url:
+        request = Request(f"{base_url}/api/jobs/known", method="DELETE")
+        try:
+            urlopen(request, timeout=2)
+        except HTTPError as error:
+            assert error.code == 409
+        else:
+            raise AssertionError("A completed job should not be cancellable")

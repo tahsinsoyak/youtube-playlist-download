@@ -52,6 +52,21 @@ class JobManager:
                 return None
             return job.public(queue_position=self._queue_position(job_id))
 
+    def cancel(self, job_id: str) -> dict[str, Any] | None:
+        """Remove a not-yet-started job from the queue; the active job cannot be cancelled."""
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job or job.state != "queued":
+                return None
+            try:
+                self._queue.remove(job_id)
+            except ValueError:
+                return None
+            job.state = "cancelled"
+            job.message = "Cancelled before it started"
+            job.finished_at = now_iso()
+            return job.public()
+
     def snapshot(self) -> dict[str, Any]:
         """Return the active job, pending queue and bounded recent history."""
         with self._lock:
@@ -61,7 +76,9 @@ class JobManager:
                 for index, job_id in enumerate(self._queue, start=1)
             ]
             recent_jobs = [
-                job for job in self._jobs.values() if job.state in {"completed", "failed"}
+                job
+                for job in self._jobs.values()
+                if job.state in {"completed", "failed", "cancelled"}
             ][-5:]
             return {
                 "active": active.public() if active else None,
