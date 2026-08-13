@@ -8,7 +8,7 @@ const dryRun = document.querySelector("#dry-run");
 const submitButton = document.querySelector("#submit-button");
 const buttonLabel = document.querySelector("#button-label");
 const healthBadge = document.querySelector("#health-badge");
-const jobView = new JobView();
+const jobView = new JobView(cancelJob);
 
 let pollTimer = null;
 let hasQueuedWork = false;
@@ -119,6 +119,21 @@ async function refreshJobs() {
     hasQueuedWork = jobView.renderSnapshot(snapshot);
     updateModeLabel();
     schedulePoll();
+  } catch (error) {
+    jobView.showError(error.message);
+  }
+}
+
+async function cancelJob(jobId) {
+  try {
+    const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.error || "Could not cancel the job.");
+    }
+    await refreshJobs();
   } catch (error) {
     jobView.showError(error.message);
   }

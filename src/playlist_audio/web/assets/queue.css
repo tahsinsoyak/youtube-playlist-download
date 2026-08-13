@@ -82,12 +82,27 @@
 .queue-list li {
   display: grid;
   padding: 12px 0;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
   gap: 10px;
   align-items: center;
   border-top: 1px solid var(--line);
   counter-increment: queue-item;
 }
+
+.queue-cancel {
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.queue-cancel:hover { border-color: #a24; color: #e66; }
+.queue-cancel:disabled { cursor: default; opacity: 0.5; }
 
 .queue-list li::before {
   color: var(--signal);
