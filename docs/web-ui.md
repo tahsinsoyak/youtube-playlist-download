@@ -52,6 +52,10 @@ The live panel displays:
 - ETA reported by `yt-dlp`
 - Pending job count and FIFO queue position
 
+Each queued job (not yet started) shows a `Cancel` button. Cancelling removes it
+from the queue without affecting the job currently downloading. The active job
+cannot be cancelled once it has started.
+
 If a playlist contains deleted or regionally unavailable entries, accessible
 items continue processing. The result reports how many entries were available
 and how many were skipped.

@@ -7,7 +7,8 @@ const STATE_LABELS = {
 };
 
 export class JobView {
-  constructor() {
+  constructor(onCancel) {
+    this.onCancel = onCancel;
     this.statusPanel = document.querySelector("#job-status");
     this.jobState = document.querySelector("#job-state");
     this.jobMessage = document.querySelector("#job-message");
@@ -96,13 +97,19 @@ export class JobView {
       const title = document.createElement("strong");
       const detail = document.createElement("small");
       const position = document.createElement("span");
+      const cancel = document.createElement("button");
 
       title.textContent = `Playlist job ${String(job.sequence).padStart(2, "0")}`;
       detail.textContent = job.dry_run ? "Safe preview" : `MP3 · ${job.output}`;
       position.className = "queue-position";
       position.textContent = `Position ${job.queue_position}`;
+      cancel.type = "button";
+      cancel.className = "queue-cancel";
+      cancel.textContent = "Cancel";
+      cancel.setAttribute("aria-label", `Cancel playlist job ${job.sequence}`);
+      cancel.addEventListener("click", () => this.onCancel?.(job.id));
       copy.append(title, detail);
-      item.append(copy, position);
+      item.append(copy, position, cancel);
       this.queueList.append(item);
     });
   }
