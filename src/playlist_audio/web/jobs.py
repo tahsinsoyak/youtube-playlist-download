@@ -4,11 +4,13 @@ import logging
 import secrets
 import threading
 from collections import deque
+from pathlib import Path
 from typing import Any
 
 from playlist_audio.downloader import DownloadFailed, download
 from playlist_audio.models import DownloadRequest
 from playlist_audio.web.job_state import Job, now_iso
+from playlist_audio.web.persistence import load_jobs, save_jobs
 from playlist_audio.web.progress import progress_changes
 
 LOGGER = logging.getLogger(__name__)
@@ -17,13 +19,53 @@ LOGGER = logging.getLogger(__name__)
 class JobManager:
     """Accept many jobs while running exactly one yt-dlp worker at a time."""
 
-    def __init__(self) -> None:
+    def __init__(self, state_path: Path | None = None) -> None:
         self._jobs: dict[str, Job] = {}
         self._queue: deque[str] = deque()
         self._active_id: str | None = None
         self._worker_running = False
         self._next_sequence = 1
         self._lock = threading.Lock()
+        self._state_path = state_path
+        if state_path is not None:
+            self._restore_state()
+
+    def _restore_state(self) -> None:
+        """Reload queued jobs and history saved before the app last closed."""
+        loaded = load_jobs(self._state_path)
+        if loaded is None:
+            return
+        jobs, next_sequence = loaded
+        should_start = False
+        with self._lock:
+            for job in jobs:
+                if job.state == "running":
+                    job.state = "failed"
+                    job.message = "Interrupted when the app was previously closed"
+                    job.progress = None
+                    job.speed = None
+                    job.eta = None
+                    job.finished_at = now_iso()
+                self._jobs[job.id] = job
+                if job.state == "queued":
+                    self._queue.append(job.id)
+            self._next_sequence = max(next_sequence, self._next_sequence)
+            if self._queue and not self._worker_running:
+                self._worker_running = True
+                should_start = True
+        if should_start:
+            threading.Thread(target=self._work_queue, daemon=True).start()
+
+    def _persist(self) -> None:
+        if self._state_path is None:
+            return
+        with self._lock:
+            jobs = list(self._jobs.values())
+            next_sequence = self._next_sequence
+        try:
+            save_jobs(self._state_path, jobs, next_sequence)
+        except OSError:
+            LOGGER.warning("Could not persist job queue state", exc_info=True)
 
     def create(self, request: DownloadRequest) -> dict[str, Any]:
         with self._lock:
@@ -43,6 +85,7 @@ class JobManager:
 
         if should_start:
             threading.Thread(target=self._work_queue, daemon=True).start()
+        self._persist()
         return job.public(queue_position=queue_position)
 
     def get(self, job_id: str) -> dict[str, Any] | None:
@@ -65,7 +108,9 @@ class JobManager:
             job.state = "cancelled"
             job.message = "Cancelled before it started"
             job.finished_at = now_iso()
-            return job.public()
+            result = job.public()
+        self._persist()
+        return result
 
     def snapshot(self) -> dict[str, Any]:
         """Return the active job, pending queue and bounded recent history."""
@@ -119,6 +164,7 @@ class JobManager:
             request = self._jobs[job_id].request
         initial = "Checking access" if request.dry_run else "Preparing download"
         self._update(job_id, state="running", message=initial, started_at=now_iso())
+        self._persist()
 
         try:
             outcome = download(
@@ -164,6 +210,7 @@ class JobManager:
                 unavailable_items=outcome.unavailable_items if outcome else 0,
                 finished_at=now_iso(),
             )
+        self._persist()
 
     def _work_queue(self) -> None:
         while True:
