@@ -8,6 +8,7 @@ from rich.console import Console
 
 from playlist_audio.web.handler import make_handler
 from playlist_audio.web.jobs import JobManager
+from playlist_audio.web.persistence import DEFAULT_STATE_PATH
 
 LOOPBACK_HOST = "127.0.0.1"
 
@@ -27,7 +28,7 @@ def create_server(port: int, manager: JobManager | None = None) -> LocalUIServer
 def run_ui(port: int, open_browser: bool = True) -> None:
     """Run until Ctrl+C and optionally open the default browser."""
     console = Console()
-    server = create_server(port)
+    server = create_server(port, manager=JobManager(state_path=DEFAULT_STATE_PATH))
     actual_port = server.server_port
     url = f"http://{LOOPBACK_HOST}:{actual_port}"
 

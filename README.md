@@ -113,9 +113,11 @@ documentation uses `youtube-playlist-download`, matching the repository name.
 
 ## Project status
 
-The CLI and localhost web UI are both supported. The queue is held in memory;
-pending jobs must be added again if the app closes. Completed files and the
-download archive remain on disk.
+The CLI and localhost web UI are both supported. The queue and recent job
+history are saved to `~/.playlist-audio/queue-state.json` and restored on
+the next start; a job that was still downloading when the app closed is
+marked interrupted rather than resumed. Completed files and the download
+archive remain on disk.
 
 ## License
 
