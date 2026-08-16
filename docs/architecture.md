@@ -8,6 +8,7 @@ UI input
   -> web/request_parser.py  JSON validation
   -> web/jobs.py            Single-worker FIFO job queue
   -> web/job_state.py       Safe job state exposed through the API
+  -> web/persistence.py     Queue and history saved to/restored from disk
   -> web/progress.py        Speed, ETA, and playlist progress calculations
   -> web/assets/            HTML, CSS, and JavaScript
 
@@ -56,10 +57,13 @@ uv run playwright install chromium
 - A download archive makes large playlist runs repeatable and duplicate-safe.
 - A single-worker queue prevents output collisions while accepting new jobs.
 - Explicit rights confirmation defines a responsible public-distribution boundary.
+- Queue state persists to `~/.playlist-audio/queue-state.json` via a
+  write-to-temp-then-rename so a crash never leaves a partially written file.
+  A job that was mid-download when the app closed is restored as failed
+  rather than silently resumed, since a yt-dlp run can't be resumed mid-call.
 
 ## Future improvements
 
-- M4A/Opus outputs that avoid re-encoding
 - Playlist manifests and change reports
 - Interactive MP3 tag correction
 - Signed release packages

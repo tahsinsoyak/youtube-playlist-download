@@ -60,8 +60,12 @@ If a playlist contains deleted or regionally unavailable entries, accessible
 items continue processing. The result reports how many entries were available
 and how many were skipped.
 
-The queue is held in application memory. Stopping the server removes pending
-jobs, but completed MP3 files and the download archive remain on disk.
+The queue and recent history are saved to `~/.playlist-audio/queue-state.json`
+after every job change and restored the next time the server starts. Pending
+jobs resume automatically; a job that was still downloading when the server
+stopped is shown as interrupted instead, since a yt-dlp run in progress can't
+be safely resumed. Completed MP3 files and the download archive remain on
+disk regardless.
 
 ## Security boundaries
 
