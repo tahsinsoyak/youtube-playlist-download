@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.table import Table
 
 from playlist_audio import __version__
+from playlist_audio.config import ConfigDefaults, load_config
 from playlist_audio.downloader import DownloadFailed, download, output_location
 from playlist_audio.models import Browser, DownloadRequest
 from playlist_audio.options import default_archive_path
@@ -34,6 +35,18 @@ def _version_callback(value: bool) -> None:
     if value:
         console.print(f"youtube-playlist-download {__version__}")
         raise typer.Exit()
+
+
+def _resolve_browser(browser: Browser | None, config: ConfigDefaults) -> Browser | None:
+    if browser is not None or not config.browser:
+        return browser
+    try:
+        return Browser(config.browser)
+    except ValueError as error:
+        console.print(
+            f"[red]Invalid option:[/red] Unknown browser '{config.browser}' in config file."
+        )
+        raise typer.Exit(code=2) from error
 
 
 @app.callback()
@@ -71,23 +84,25 @@ def doctor() -> None:
 @app.command("ui")
 def ui_command(
     port: Annotated[
-        int,
-        typer.Option("--port", help="Local interface port."),
-    ] = 8765,
+        int | None,
+        typer.Option("--port", help="Local interface port. Defaults to 8765 or the config file."),
+    ] = None,
     no_open: Annotated[
         bool,
         typer.Option("--no-open", help="Do not open the browser automatically."),
     ] = False,
 ) -> None:
     """Start the lightweight local web interface."""
-    if not 1024 <= port <= 65535:
+    config = load_config()
+    resolved_port = port if port is not None else (config.port or 8765)
+    if not 1024 <= resolved_port <= 65535:
         console.print("[red]Port must be between 1024 and 65535.[/red]")
         raise typer.Exit(code=2)
 
     from playlist_audio.web.server import run_ui
 
     try:
-        run_ui(port=port, open_browser=not no_open)
+        run_ui(port=resolved_port, open_browser=not no_open)
     except OSError as error:
         console.print(f"[red]Could not start the interface:[/red] {error}")
         raise typer.Exit(code=1) from error
@@ -97,9 +112,11 @@ def ui_command(
 def download_command(
     url: Annotated[str, typer.Argument(help="YouTube video or playlist URL.")],
     output: Annotated[
-        Path,
-        typer.Option("--output", "-o", help="Root folder for the download library."),
-    ] = Path("downloads"),
+        Path | None,
+        typer.Option(
+            "--output", "-o", help="Root folder for the download library. Defaults to 'downloads'."
+        ),
+    ] = None,
     browser: Annotated[
         Browser | None,
         typer.Option("--browser", help="Signed-in browser for authorized private content."),
@@ -109,9 +126,9 @@ def download_command(
         typer.Option("--browser-profile", help="Optional browser profile name or path."),
     ] = None,
     audio_quality: Annotated[
-        str,
+        str | None,
         typer.Option("--audio-quality", help="FFmpeg VBR: 0 is best, 10 is lowest."),
-    ] = "0",
+    ] = None,
     playlist_items: Annotated[
         str | None,
         typer.Option("--playlist-items", help="Examples: 1:10, 1,3,7, or 10-."),
@@ -148,21 +165,27 @@ def download_command(
         )
         raise typer.Exit(code=2)
 
+    config = load_config()
+    resolved_output = output or (Path(config.output) if config.output else Path("downloads"))
+    resolved_browser = _resolve_browser(browser, config)
+    resolved_browser_profile = browser_profile or config.browser_profile
+    resolved_audio_quality = audio_quality or config.audio_quality or "0"
+
     try:
         validated_url = validate_youtube_url(url)
-        validated_quality = validate_audio_quality(audio_quality)
-        validate_browser_profile(browser, browser_profile)
+        validated_quality = validate_audio_quality(resolved_audio_quality)
+        validate_browser_profile(resolved_browser, resolved_browser_profile)
     except ValidationError as error:
         console.print(f"[red]Invalid option:[/red] {error}")
         raise typer.Exit(code=2) from error
 
-    output_dir = output.expanduser()
+    output_dir = resolved_output.expanduser()
     request = DownloadRequest(
         url=validated_url,
         output_dir=output_dir,
         archive_file=(archive or default_archive_path(output_dir)).expanduser(),
-        browser=browser,
-        browser_profile=browser_profile,
+        browser=resolved_browser,
+        browser_profile=resolved_browser_profile,
         audio_quality=validated_quality,
         playlist_items=playlist_items,
         dry_run=dry_run,
@@ -170,9 +193,9 @@ def download_command(
         embed_metadata=not no_metadata,
     )
 
-    if browser:
+    if resolved_browser:
         console.print(
-            f"The [cyan]{browser.value}[/cyan] session will be used. "
+            f"The [cyan]{resolved_browser.value}[/cyan] session will be used. "
             "Close the browser completely if its cookie database is locked."
         )
     if dry_run:
