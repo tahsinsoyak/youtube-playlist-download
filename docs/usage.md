@@ -88,3 +88,21 @@ uv run youtube-playlist-download download "PLAYLIST_URL" `
   --archive ".state\my-playlist.txt" `
   --confirm-rights
 ```
+
+## Configuration file
+
+Repeated flags can be set once in `~/.playlist-audio/config.toml` instead of
+being passed on every run. A flag on the command line always takes priority
+over the config file.
+
+```toml
+output = "D:/Music/YouTube Archive"
+browser = "firefox"
+browser_profile = "default-release"
+audio_quality = "0"
+port = 8765
+```
+
+Recognized keys: `output`, `browser`, `browser_profile`, and `audio_quality`
+(used by `download`), and `port` (used by `ui`). Unknown keys are ignored, and
+a missing or unreadable file is treated the same as no config at all.
