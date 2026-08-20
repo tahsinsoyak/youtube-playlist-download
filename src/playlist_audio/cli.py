@@ -16,6 +16,7 @@ from playlist_audio.preflight import run_checks
 from playlist_audio.terminal import configure_utf8_output
 from playlist_audio.validation import (
     ValidationError,
+    validate_audio_format,
     validate_audio_quality,
     validate_browser_profile,
     validate_youtube_url,
@@ -129,6 +130,10 @@ def download_command(
         str | None,
         typer.Option("--audio-quality", help="FFmpeg VBR: 0 is best, 10 is lowest."),
     ] = None,
+    audio_format: Annotated[
+        str | None,
+        typer.Option("--audio-format", help="Output codec: mp3, m4a, or opus. Defaults to mp3."),
+    ] = None,
     playlist_items: Annotated[
         str | None,
         typer.Option("--playlist-items", help="Examples: 1:10, 1,3,7, or 10-."),
@@ -170,10 +175,12 @@ def download_command(
     resolved_browser = _resolve_browser(browser, config)
     resolved_browser_profile = browser_profile or config.browser_profile
     resolved_audio_quality = audio_quality or config.audio_quality or "0"
+    resolved_audio_format = audio_format or config.audio_format or "mp3"
 
     try:
         validated_url = validate_youtube_url(url)
         validated_quality = validate_audio_quality(resolved_audio_quality)
+        validated_format = validate_audio_format(resolved_audio_format)
         validate_browser_profile(resolved_browser, resolved_browser_profile)
     except ValidationError as error:
         console.print(f"[red]Invalid option:[/red] {error}")
@@ -187,6 +194,7 @@ def download_command(
         browser=resolved_browser,
         browser_profile=resolved_browser_profile,
         audio_quality=validated_quality,
+        audio_format=validated_format,
         playlist_items=playlist_items,
         dry_run=dry_run,
         embed_thumbnail=not no_thumbnail,

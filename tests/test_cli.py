@@ -56,6 +56,39 @@ def test_dry_run_builds_request_without_network(tmp_path: Path) -> None:
     assert request.dry_run is True
     assert request.browser.value == "firefox"
     assert request.output_dir == tmp_path
+    assert request.audio_format == "mp3"
+
+
+def test_audio_format_flag_is_validated_and_applied(tmp_path: Path) -> None:
+    with patch("playlist_audio.cli.download") as mocked_download:
+        mocked_download.return_value = DownloadOutcome(1, 1, 0)
+        result = runner.invoke(
+            app,
+            [
+                "download",
+                PLAYLIST_URL,
+                "--output",
+                str(tmp_path),
+                "--audio-format",
+                "m4a",
+                "--dry-run",
+                "--confirm-rights",
+            ],
+        )
+
+    assert result.exit_code == 0
+    request = mocked_download.call_args.args[0]
+    assert request.audio_format == "m4a"
+
+
+def test_rejects_unsupported_audio_format_flag() -> None:
+    result = runner.invoke(
+        app,
+        ["download", PLAYLIST_URL, "--audio-format", "flac", "--confirm-rights"],
+    )
+
+    assert result.exit_code == 2
+    assert "Invalid option" in result.stdout
 
 
 def test_rejects_non_youtube_url() -> None:

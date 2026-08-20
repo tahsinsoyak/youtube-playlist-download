@@ -67,3 +67,9 @@ def test_playlist_items_absent_when_not_set(tmp_path: Path) -> None:
     options = build_ydl_options(make_request(tmp_path))
 
     assert "playlist_items" not in options
+
+
+def test_audio_format_selects_the_extraction_codec(tmp_path: Path) -> None:
+    options = build_ydl_options(make_request(tmp_path, audio_format="opus"))
+
+    assert options["postprocessors"][0]["preferredcodec"] == "opus"

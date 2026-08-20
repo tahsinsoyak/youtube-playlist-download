@@ -53,3 +53,20 @@ def test_rejects_browser_profile_without_browser() -> None:
 def test_rejects_non_boolean_flags(field: str) -> None:
     with pytest.raises(RequestError, match="must be true or false"):
         parse_download_request({**VALID_PAYLOAD, field: "yes"})
+
+
+def test_audio_format_defaults_to_mp3() -> None:
+    request = parse_download_request(VALID_PAYLOAD)
+
+    assert request.audio_format == "mp3"
+
+
+def test_audio_format_pass_through_when_valid() -> None:
+    request = parse_download_request({**VALID_PAYLOAD, "audio_format": "opus"})
+
+    assert request.audio_format == "opus"
+
+
+def test_rejects_unsupported_audio_format() -> None:
+    with pytest.raises(RequestError, match="Audio format"):
+        parse_download_request({**VALID_PAYLOAD, "audio_format": "flac"})

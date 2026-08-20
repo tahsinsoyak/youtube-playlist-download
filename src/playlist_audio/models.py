@@ -27,6 +27,7 @@ class DownloadRequest:
     browser: Browser | None = None
     browser_profile: str | None = None
     audio_quality: str = "0"
+    audio_format: str = "mp3"
     playlist_items: str | None = None
     dry_run: bool = False
     embed_thumbnail: bool = True

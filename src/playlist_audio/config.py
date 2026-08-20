@@ -6,7 +6,7 @@ from pathlib import Path
 
 DEFAULT_CONFIG_PATH = Path.home() / ".playlist-audio" / "config.toml"
 
-_STRING_FIELDS = ("output", "browser", "browser_profile", "audio_quality")
+_STRING_FIELDS = ("output", "browser", "browser_profile", "audio_quality", "audio_format")
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,6 +17,7 @@ class ConfigDefaults:
     browser: str | None = None
     browser_profile: str | None = None
     audio_quality: str | None = None
+    audio_format: str | None = None
     port: int | None = None
 
 

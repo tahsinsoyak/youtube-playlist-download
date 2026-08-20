@@ -16,7 +16,7 @@ def build_ydl_options(request: DownloadRequest) -> dict[str, Any]:
     postprocessors: list[dict[str, Any]] = [
         {
             "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
+            "preferredcodec": request.audio_format,
             "preferredquality": request.audio_quality,
         }
     ]
