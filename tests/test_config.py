@@ -14,6 +14,7 @@ def test_reads_known_string_and_int_fields(tmp_path: Path) -> None:
         'browser = "firefox"\n'
         'browser_profile = "default-release"\n'
         'audio_quality = "2"\n'
+        'audio_format = "opus"\n'
         "port = 9000\n",
         encoding="utf-8",
     )
@@ -24,6 +25,7 @@ def test_reads_known_string_and_int_fields(tmp_path: Path) -> None:
     assert config.browser == "firefox"
     assert config.browser_profile == "default-release"
     assert config.audio_quality == "2"
+    assert config.audio_format == "opus"
     assert config.port == 9000
 
 

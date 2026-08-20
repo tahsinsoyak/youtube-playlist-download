@@ -3,6 +3,7 @@ import pytest
 from playlist_audio.models import Browser
 from playlist_audio.validation import (
     ValidationError,
+    validate_audio_format,
     validate_audio_quality,
     validate_browser_profile,
     validate_youtube_url,
@@ -44,6 +45,16 @@ def test_audio_quality_range() -> None:
         validate_audio_quality("11")
     with pytest.raises(ValidationError):
         validate_audio_quality("-1")
+
+
+@pytest.mark.parametrize("value", ["mp3", "m4a", "opus", "M4A", " opus "])
+def test_accepts_supported_audio_formats(value: str) -> None:
+    assert validate_audio_format(value) == value.strip().lower()
+
+
+def test_rejects_unsupported_audio_format() -> None:
+    with pytest.raises(ValidationError, match="m4a, mp3, opus"):
+        validate_audio_format("flac")
 
 
 def test_profile_requires_browser() -> None:

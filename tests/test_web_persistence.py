@@ -12,6 +12,7 @@ def make_job(tmp_path: Path, **overrides: object) -> Job:
         archive_file=tmp_path / "music" / ".playlist-audio-archive.txt",
         browser=Browser.FIREFOX,
         browser_profile="default-release",
+        audio_format="opus",
         dry_run=True,
     )
     values: dict[str, object] = {"id": "job-1", "sequence": 1, "request": request}
@@ -37,6 +38,7 @@ def test_round_trips_job_state(tmp_path: Path) -> None:
     assert restored.request.output_dir == job.request.output_dir
     assert restored.request.browser == Browser.FIREFOX
     assert restored.request.browser_profile == "default-release"
+    assert restored.request.audio_format == "opus"
     assert restored.request.dry_run is True
 
 

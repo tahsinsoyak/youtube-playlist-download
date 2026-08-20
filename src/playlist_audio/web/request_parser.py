@@ -8,6 +8,7 @@ from playlist_audio.models import Browser, DownloadRequest
 from playlist_audio.options import default_archive_path
 from playlist_audio.validation import (
     ValidationError,
+    validate_audio_format,
     validate_audio_quality,
     validate_browser_profile,
     validate_youtube_url,
@@ -51,6 +52,7 @@ def parse_download_request(payload: dict[str, Any]) -> DownloadRequest:
         browser = Browser(browser_value) if browser_value else None
         validated_url = validate_youtube_url(url or "")
         audio_quality = validate_audio_quality(str(payload.get("audio_quality", "0")))
+        audio_format = validate_audio_format(str(payload.get("audio_format", "mp3")))
         validate_browser_profile(browser, browser_profile)
     except (ValueError, ValidationError) as error:
         raise RequestError(str(error)) from error
@@ -70,6 +72,7 @@ def parse_download_request(payload: dict[str, Any]) -> DownloadRequest:
         browser=browser,
         browser_profile=browser_profile,
         audio_quality=audio_quality,
+        audio_format=audio_format,
         playlist_items=playlist_items,
         dry_run=_boolean(payload, "dry_run", True),
         embed_thumbnail=_boolean(payload, "embed_thumbnail", True),
