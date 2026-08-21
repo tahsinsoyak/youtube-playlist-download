@@ -83,6 +83,7 @@ function formPayload() {
     browser: data.get("browser"),
     browser_profile: data.get("browser_profile"),
     audio_quality: data.get("audio_quality"),
+    audio_format: data.get("audio_format"),
     playlist_items: data.get("playlist_items"),
     dry_run: data.has("dry_run"),
     embed_thumbnail: data.has("embed_thumbnail"),

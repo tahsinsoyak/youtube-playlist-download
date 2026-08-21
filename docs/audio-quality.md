@@ -2,8 +2,8 @@
 
 ## What does “highest-quality MP3” mean?
 
-YouTube usually serves audio as a lossy AAC or Opus stream rather than MP3. This
-project:
+YouTube usually serves audio as a lossy AAC or Opus stream rather than MP3. By
+default this project:
 
 1. Selects the best available stream with `bestaudio/best`.
 2. Converts it to MP3 with FFmpeg and LAME.
@@ -12,6 +12,24 @@ project:
 `0` is the highest setting on FFmpeg's MP3 VBR scale. Re-encoding a lossy source
 at a high bitrate cannot restore detail already lost by the source. The result
 is a broadly compatible MP3, not archival lossless audio.
+
+## Avoiding a re-encode with `--audio-format`
+
+MP3 is the most broadly compatible player format, but converting to it always
+re-encodes YouTube's native AAC or Opus stream. Choose `--audio-format m4a` or
+`--audio-format opus` instead to request that native container directly; when
+the source stream already uses that codec, FFmpeg remuxes it without
+re-encoding, so quality matches the source exactly.
+
+```powershell
+uv run youtube-playlist-download download "PLAYLIST_URL" `
+  --audio-format opus `
+  --confirm-rights
+```
+
+`m4a` and `opus` are less universally supported by older MP3 players than
+`mp3`, so pick MP3 when playback compatibility matters more than avoiding a
+re-encode.
 
 ## Quality and file size
 
