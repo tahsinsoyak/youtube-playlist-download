@@ -131,3 +131,14 @@ def test_delete_non_cancellable_job_returns_409() -> None:
             assert error.code == 409
         else:
             raise AssertionError("A completed job should not be cancellable")
+
+
+def test_exports_job_history_as_a_download() -> None:
+    with running_server() as base_url:
+        response = urlopen(f"{base_url}/api/jobs/export", timeout=2)
+        with response:
+            assert response.status == 200
+            disposition = response.headers["Content-Disposition"]
+            assert disposition == 'attachment; filename="job-history.json"'
+            body = json.load(response)
+            assert body["counts"] == {"running": 0, "queued": 0}
