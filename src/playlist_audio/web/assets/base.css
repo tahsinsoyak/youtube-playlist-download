@@ -191,3 +191,10 @@ footer {
   font-size: 9px;
   letter-spacing: 0.14em;
 }
+
+footer a {
+  color: #777165;
+  text-underline-offset: 3px;
+}
+
+footer a:hover { color: var(--paper); }

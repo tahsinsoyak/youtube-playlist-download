@@ -29,6 +29,8 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
                 self._json(HTTPStatus.OK, {"status": "ok", "scope": "localhost"})
             elif path == "/api/jobs":
                 self._json(HTTPStatus.OK, manager.snapshot())
+            elif path == "/api/jobs/export":
+                self._json_download(manager.snapshot(), "job-history.json")
             elif path.startswith("/api/jobs/"):
                 job_id = path.removeprefix("/api/jobs/")
                 job = manager.get(job_id)
@@ -128,6 +130,16 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
             self.send_response(status)
             self._security_headers()
             self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(content)))
+            self.end_headers()
+            self.wfile.write(content)
+
+        def _json_download(self, payload: dict[str, Any], filename: str) -> None:
+            content = json.dumps(payload, ensure_ascii=False, indent=2).encode()
+            self.send_response(HTTPStatus.OK)
+            self._security_headers()
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
             self.send_header("Content-Length", str(len(content)))
             self.end_headers()
             self.wfile.write(content)

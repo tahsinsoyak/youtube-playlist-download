@@ -43,14 +43,18 @@ write browser cookies to disk.
 
 - Public, unlisted, and authorized private playlist support
 - Lightweight localhost web UI with no frontend framework
-- FIFO queue that accepts new playlists during an active download
+- FIFO queue that accepts new playlists during an active download, with
+  per-job cancellation before a job starts
+- Queue and recent history persisted to disk and restored on restart
 - Live KB/s, transferred size, track count, overall progress, and ETA
-- Best available audio stream converted to MP3
+- Best available audio stream converted to MP3, M4A, or Opus
 - Highest FFmpeg VBR quality (`0`) by default
 - Embedded thumbnail and media metadata
 - Playlist order preserved in folder and file names
 - Download archive that prevents accidental duplicates
 - Safe preview (`--dry-run`) and dependency diagnostics (`doctor`)
+- Optional config file for repeated CLI/UI defaults
+- Downloadable job-history export (JSON)
 - No password or cookie-file input
 
 ## Quick start

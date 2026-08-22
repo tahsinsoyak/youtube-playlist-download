@@ -35,8 +35,8 @@ Press `Ctrl+C` in the terminal running the server to stop it.
    off automatically.
 7. Select `Access confirmed — download MP3` to start the real download.
 
-Open `Fine controls` to change MP3 quality, playlist positions, browser profile,
-cover art, and metadata options.
+Open `Fine controls` to change the audio format, VBR quality, playlist
+positions, browser profile, cover art, and metadata options.
 
 ## Queue and live progress
 
@@ -66,6 +66,13 @@ jobs resume automatically; a job that was still downloading when the server
 stopped is shown as interrupted instead, since a yt-dlp run in progress can't
 be safely resumed. Completed MP3 files and the download archive remain on
 disk regardless.
+
+## Exporting history
+
+Select `Export job history (JSON)` in the footer at any time to download the
+current active job, queue, and recent history as a JSON file. Useful for
+keeping a record outside the app or filing a bug report (redact any private
+playlist URLs first).
 
 ## Security boundaries
 
