@@ -8,6 +8,7 @@ from importlib.resources import files
 from typing import Any
 from urllib.parse import urlsplit
 
+from playlist_audio.preflight import readiness_error, readiness_status
 from playlist_audio.web.jobs import JobManager
 from playlist_audio.web.request_parser import RequestError, parse_download_request
 
@@ -15,8 +16,12 @@ MAX_BODY_BYTES = 64 * 1024
 ASSET_PACKAGE = "playlist_audio.web.assets"
 
 
-def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
+def make_handler(
+    manager: JobManager,
+    health: dict[str, object] | None = None,
+) -> type[BaseHTTPRequestHandler]:
     """Bind one job manager to a request-handler class."""
+    current_health = health if health is not None else readiness_status()
 
     class LocalUIHandler(BaseHTTPRequestHandler):
         server_version = "PlaylistAudioLocal/0.1"
@@ -26,7 +31,7 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
             if path == "/":
                 self._serve_asset("index.html", "text/html; charset=utf-8")
             elif path == "/api/health":
-                self._json(HTTPStatus.OK, {"status": "ok", "scope": "localhost"})
+                self._json(HTTPStatus.OK, current_health)
             elif path == "/api/jobs":
                 self._json(HTTPStatus.OK, manager.snapshot())
             elif path == "/api/jobs/export":
@@ -51,6 +56,9 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
                 self._json(HTTPStatus.NOT_FOUND, {"error": "Page not found."})
 
         def do_DELETE(self) -> None:  # noqa: N802
+            if not self._is_local_json_request():
+                self._json(HTTPStatus.FORBIDDEN, {"error": "Local request validation failed."})
+                return
             path = urlsplit(self.path).path
             if not path.startswith("/api/jobs/"):
                 self._json(HTTPStatus.NOT_FOUND, {"error": "Page not found."})
@@ -70,6 +78,9 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
 
         def do_POST(self) -> None:  # noqa: N802
             path = urlsplit(self.path).path
+            if path.startswith("/api/jobs/") and path.endswith("/retry"):
+                self._retry_job(path.removeprefix("/api/jobs/").removesuffix("/retry"))
+                return
             if path != "/api/jobs":
                 self._json(HTTPStatus.NOT_FOUND, {"error": "Page not found."})
                 return
@@ -90,6 +101,10 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
                 if not isinstance(payload, dict):
                     raise RequestError("Expected a JSON object.")
                 request = parse_download_request(payload)
+                setup_error = readiness_error(dry_run=request.dry_run, status=current_health)
+                if setup_error:
+                    self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": setup_error})
+                    return
                 job = manager.create(request)
             except (json.JSONDecodeError, UnicodeDecodeError):
                 self._json(HTTPStatus.BAD_REQUEST, {"error": "Invalid JSON."})
@@ -97,6 +112,30 @@ def make_handler(manager: JobManager) -> type[BaseHTTPRequestHandler]:
                 self._json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
             else:
                 self._json(HTTPStatus.ACCEPTED, job)
+
+        def _retry_job(self, job_id: str) -> None:
+            if not self._is_local_json_request():
+                self._json(HTTPStatus.FORBIDDEN, {"error": "Local request validation failed."})
+                return
+            existing = manager.get(job_id)
+            if existing is None:
+                self._json(HTTPStatus.NOT_FOUND, {"error": "Job not found."})
+                return
+            setup_error = readiness_error(
+                dry_run=bool(existing.get("dry_run")),
+                status=current_health,
+            )
+            if setup_error:
+                self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": setup_error})
+                return
+            retried = manager.retry(job_id)
+            if retried:
+                self._json(HTTPStatus.ACCEPTED, retried)
+            else:
+                self._json(
+                    HTTPStatus.CONFLICT,
+                    {"error": "This job cannot be retried after restart or while it is active."},
+                )
 
         def _is_local_json_request(self) -> bool:
             port = self.server.server_port  # type: ignore[attr-defined]

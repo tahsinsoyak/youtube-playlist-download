@@ -13,13 +13,15 @@ def now_iso() -> str:
     return datetime.now(UTC).isoformat()
 
 
-def _request_to_dict(request: DownloadRequest) -> dict[str, Any]:
+def _request_to_dict(request: DownloadRequest, *, resumable: bool) -> dict[str, Any]:
     return {
-        "url": request.url,
+        # Queued/running jobs need these fields to resume after a restart. Once
+        # a job is terminal, avoid retaining private playlist and profile data.
+        "url": request.url if resumable else None,
         "output_dir": str(request.output_dir),
         "archive_file": str(request.archive_file),
-        "browser": request.browser.value if request.browser else None,
-        "browser_profile": request.browser_profile,
+        "browser": request.browser.value if resumable and request.browser else None,
+        "browser_profile": request.browser_profile if resumable else None,
         "audio_quality": request.audio_quality,
         "audio_format": request.audio_format,
         "playlist_items": request.playlist_items,
@@ -32,7 +34,7 @@ def _request_to_dict(request: DownloadRequest) -> dict[str, Any]:
 def _request_from_dict(data: dict[str, Any]) -> DownloadRequest:
     browser_value = data.get("browser")
     return DownloadRequest(
-        url=data["url"],
+        url=data.get("url") or "",
         output_dir=Path(data["output_dir"]),
         archive_file=Path(data["archive_file"]),
         browser=Browser(browser_value) if browser_value else None,
@@ -90,6 +92,7 @@ class Job:
             "unavailable_items": self.unavailable_items,
             "queue_position": queue_position,
             "dry_run": self.request.dry_run,
+            "audio_format": self.request.audio_format,
             "output": str(self.request.output_dir.resolve()),
             "created_at": self.created_at,
             "started_at": self.started_at,
@@ -101,7 +104,10 @@ class Job:
         return {
             "id": self.id,
             "sequence": self.sequence,
-            "request": _request_to_dict(self.request),
+            "request": _request_to_dict(
+                self.request,
+                resumable=self.state in {"queued", "running"},
+            ),
             "state": self.state,
             "progress": self.progress,
             "message": self.message,

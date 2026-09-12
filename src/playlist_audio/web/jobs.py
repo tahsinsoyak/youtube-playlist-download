@@ -7,13 +7,14 @@ from collections import deque
 from pathlib import Path
 from typing import Any
 
-from playlist_audio.downloader import DownloadFailed, download
+from playlist_audio.downloader import DownloadCancelled, DownloadFailed, download
 from playlist_audio.models import DownloadRequest
 from playlist_audio.web.job_state import Job, now_iso
 from playlist_audio.web.persistence import load_jobs, save_jobs
 from playlist_audio.web.progress import progress_changes
 
 LOGGER = logging.getLogger(__name__)
+MAX_PERSISTED_HISTORY = 20
 
 
 class JobManager:
@@ -24,8 +25,10 @@ class JobManager:
         self._queue: deque[str] = deque()
         self._active_id: str | None = None
         self._worker_running = False
+        self._cancel_requested: set[str] = set()
         self._next_sequence = 1
         self._lock = threading.Lock()
+        self._persist_lock = threading.Lock()
         self._state_path = state_path
         if state_path is not None:
             self._restore_state()
@@ -37,6 +40,7 @@ class JobManager:
             return
         jobs, next_sequence = loaded
         should_start = False
+        state_changed = False
         with self._lock:
             for job in jobs:
                 if job.state == "running":
@@ -46,6 +50,7 @@ class JobManager:
                     job.speed = None
                     job.eta = None
                     job.finished_at = now_iso()
+                    state_changed = True
                 self._jobs[job.id] = job
                 if job.state == "queued":
                     self._queue.append(job.id)
@@ -53,19 +58,24 @@ class JobManager:
             if self._queue and not self._worker_running:
                 self._worker_running = True
                 should_start = True
+        if state_changed:
+            self._persist()
         if should_start:
             threading.Thread(target=self._work_queue, daemon=True).start()
 
     def _persist(self) -> None:
         if self._state_path is None:
             return
-        with self._lock:
-            jobs = list(self._jobs.values())
-            next_sequence = self._next_sequence
-        try:
-            save_jobs(self._state_path, jobs, next_sequence)
-        except OSError:
-            LOGGER.warning("Could not persist job queue state", exc_info=True)
+        # Snapshot only after this writer reaches the front of the line. This
+        # prevents a delayed, older snapshot from replacing newer queue state.
+        with self._persist_lock:
+            with self._lock:
+                jobs = list(self._jobs.values())
+                next_sequence = self._next_sequence
+            try:
+                save_jobs(self._state_path, jobs, next_sequence)
+            except OSError:
+                LOGGER.warning("Could not persist job queue state", exc_info=True)
 
     def create(self, request: DownloadRequest) -> dict[str, Any]:
         with self._lock:
@@ -96,21 +106,38 @@ class JobManager:
             return job.public(queue_position=self._queue_position(job_id))
 
     def cancel(self, job_id: str) -> dict[str, Any] | None:
-        """Remove a not-yet-started job from the queue; the active job cannot be cancelled."""
+        """Cancel a queued job or ask the active yt-dlp operation to stop."""
         with self._lock:
             job = self._jobs.get(job_id)
-            if not job or job.state != "queued":
+            if not job:
                 return None
-            try:
-                self._queue.remove(job_id)
-            except ValueError:
+            if job.state == "running" and self._active_id == job_id:
+                self._cancel_requested.add(job_id)
+                job.message = "Cancellation requested"
+                result = job.public()
+            elif job.state == "queued":
+                try:
+                    self._queue.remove(job_id)
+                except ValueError:
+                    return None
+                job.state = "cancelled"
+                job.message = "Cancelled before it started"
+                job.finished_at = now_iso()
+                self._trim_history()
+                result = job.public()
+            else:
                 return None
-            job.state = "cancelled"
-            job.message = "Cancelled before it started"
-            job.finished_at = now_iso()
-            result = job.public()
         self._persist()
         return result
+
+    def retry(self, job_id: str) -> dict[str, Any] | None:
+        """Queue a new attempt for a failed or cancelled job from this session."""
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job or job.state not in {"failed", "cancelled"} or not job.request.url:
+                return None
+            request = job.request
+        return self.create(request)
 
     def snapshot(self) -> dict[str, Any]:
         """Return the active job, pending queue and bounded recent history."""
@@ -145,7 +172,7 @@ class JobManager:
         completed = [
             job_id for job_id, job in self._jobs.items() if job.state not in {"queued", "running"}
         ]
-        for job_id in completed[:-19]:
+        for job_id in completed[:-MAX_PERSISTED_HISTORY]:
             self._jobs.pop(job_id, None)
 
     def _update(self, job_id: str, **changes: Any) -> None:
@@ -155,9 +182,27 @@ class JobManager:
                 setattr(job, key, value)
 
     def _progress_hook(self, job_id: str, event: dict[str, Any]) -> None:
+        with self._lock:
+            if job_id in self._cancel_requested:
+                raise DownloadCancelled("Download cancelled")
         changes = progress_changes(event)
         if changes:
             self._update(job_id, **changes)
+
+    def _cancel_was_requested(self, job_id: str) -> bool:
+        with self._lock:
+            return job_id in self._cancel_requested
+
+    def _mark_cancelled(self, job_id: str) -> None:
+        self._update(
+            job_id,
+            state="cancelled",
+            message="Download cancelled",
+            progress=None,
+            speed=None,
+            eta=None,
+            finished_at=now_iso(),
+        )
 
     def _run_job(self, job_id: str) -> None:
         with self._lock:
@@ -171,16 +216,21 @@ class JobManager:
                 request,
                 progress_hook=lambda event: self._progress_hook(job_id, event),
             )
+        except DownloadCancelled:
+            self._mark_cancelled(job_id)
         except DownloadFailed as error:
-            self._update(
-                job_id,
-                state="failed",
-                message=str(error)[:800],
-                progress=None,
-                speed=None,
-                eta=None,
-                finished_at=now_iso(),
-            )
+            if self._cancel_was_requested(job_id):
+                self._mark_cancelled(job_id)
+            else:
+                self._update(
+                    job_id,
+                    state="failed",
+                    message=str(error)[:800],
+                    progress=None,
+                    speed=None,
+                    eta=None,
+                    finished_at=now_iso(),
+                )
         except Exception:
             LOGGER.exception("Local UI job failed")
             self._update(
@@ -193,23 +243,29 @@ class JobManager:
                 finished_at=now_iso(),
             )
         else:
-            message = "Preview complete" if request.dry_run else "Download complete"
-            if outcome and outcome.unavailable_items:
-                message = (
-                    f"{message} · {outcome.available_items} accessible, "
-                    f"{outcome.unavailable_items} unavailable item(s) skipped"
+            if self._cancel_was_requested(job_id):
+                self._mark_cancelled(job_id)
+            else:
+                message = "Preview complete" if request.dry_run else "Download complete"
+                if outcome and outcome.unavailable_items:
+                    message = (
+                        f"{message} · {outcome.available_items} accessible, "
+                        f"{outcome.unavailable_items} unavailable item(s) skipped"
+                    )
+                self._update(
+                    job_id,
+                    state="completed",
+                    message=message,
+                    progress=100,
+                    speed=None,
+                    eta=0,
+                    available_items=outcome.available_items if outcome else None,
+                    unavailable_items=outcome.unavailable_items if outcome else 0,
+                    finished_at=now_iso(),
                 )
-            self._update(
-                job_id,
-                state="completed",
-                message=message,
-                progress=100,
-                speed=None,
-                eta=0,
-                available_items=outcome.available_items if outcome else None,
-                unavailable_items=outcome.unavailable_items if outcome else 0,
-                finished_at=now_iso(),
-            )
+        with self._lock:
+            self._cancel_requested.discard(job_id)
+            self._trim_history()
         self._persist()
 
     def _work_queue(self) -> None:

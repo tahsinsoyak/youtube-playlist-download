@@ -66,3 +66,18 @@ def test_save_creates_parent_directory(tmp_path: Path) -> None:
     save_jobs(state_path, [], next_sequence=1)
 
     assert state_path.is_file()
+
+
+def test_terminal_history_does_not_persist_url_or_browser_profile(tmp_path: Path) -> None:
+    state_path = tmp_path / "queue-state.json"
+    job = make_job(tmp_path, state="completed")
+
+    save_jobs(state_path, [job], next_sequence=2)
+
+    raw = state_path.read_text(encoding="utf-8")
+    assert "PL123" not in raw
+    assert "default-release" not in raw
+    loaded = load_jobs(state_path)
+    assert loaded is not None
+    assert loaded[0][0].request.url == ""
+    assert loaded[0][0].request.audio_format == "opus"

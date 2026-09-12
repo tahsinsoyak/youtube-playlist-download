@@ -11,10 +11,15 @@ from yt_dlp.utils import DownloadError
 
 from playlist_audio.models import DownloadRequest
 from playlist_audio.options import build_ydl_options
+from playlist_audio.preflight import readiness_error
 
 
 class DownloadFailed(RuntimeError):
     """User-facing download failure."""
+
+
+class DownloadCancelled(RuntimeError):
+    """A running download was cancelled by the local user."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,11 +78,16 @@ def download(
     progress_hook: Callable[[dict[str, Any]], None] | None = None,
 ) -> DownloadOutcome:
     """Create output directories and execute one yt-dlp run."""
+    setup_error = readiness_error(dry_run=request.dry_run)
+    if setup_error:
+        raise DownloadFailed(setup_error)
+
     request.output_dir.mkdir(parents=True, exist_ok=True)
     request.archive_file.parent.mkdir(parents=True, exist_ok=True)
     options = build_ydl_options(request)
     if progress_hook:
         options["progress_hooks"] = [progress_hook]
+        options["postprocessor_hooks"] = [progress_hook]
 
     try:
         with YoutubeDL(options) as ydl:

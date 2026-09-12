@@ -73,6 +73,6 @@ def progress_changes(event: dict[str, Any]) -> dict[str, Any]:
             ),
             speed=None,
             eta=None,
-            message="Preparing and tagging MP3",
+            message="Preparing and tagging audio",
         )
     return changes

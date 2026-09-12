@@ -76,8 +76,8 @@ def doctor() -> None:
 
     if not all(check.ok for check in checks if check.required):
         console.print(
-            "\n[red]Reliable YouTube/MP3 processing is unavailable",
-            "while required components are missing.[/red]",
+            "\n[red]Reliable YouTube/audio processing is unavailable "
+            "while required components are missing.[/red]"
         )
         raise typer.Exit(code=1)
 
@@ -162,7 +162,7 @@ def download_command(
         ),
     ] = False,
 ) -> None:
-    """Download one video or playlist as MP3."""
+    """Download one video or playlist as an audio file."""
     if not confirm_rights:
         console.print(
             "[red]Stopped:[/red] Use only content you are authorized to download. "

@@ -130,13 +130,15 @@ def test_cancel_removes_a_queued_job(tmp_path: Path) -> None:
             sleep(0.01)
 
 
-def test_cannot_cancel_the_active_job(tmp_path: Path) -> None:
+def test_can_cancel_the_active_job(tmp_path: Path) -> None:
     started = Event()
     release = Event()
 
     def fake_download(request, progress_hook=None) -> DownloadOutcome:
         started.set()
         assert release.wait(timeout=2)
+        if progress_hook:
+            progress_hook({"status": "downloading"})
         return DownloadOutcome(total_items=1, available_items=1, unavailable_items=0)
 
     manager = JobManager()
@@ -144,15 +146,76 @@ def test_cannot_cancel_the_active_job(tmp_path: Path) -> None:
         active = manager.create(make_request(tmp_path))
         assert started.wait(timeout=2)
 
-        assert manager.cancel(active["id"]) is None
+        cancelled = manager.cancel(active["id"])
+        assert cancelled is not None
         assert manager.get(active["id"])["state"] == "running"
+        assert manager.get(active["id"])["message"] == "Cancellation requested"
 
         release.set()
+        deadline = monotonic() + 2
+        while manager.get(active["id"])["state"] == "running" and monotonic() < deadline:
+            sleep(0.01)
+
+    assert manager.get(active["id"])["state"] == "cancelled"
 
 
 def test_cancel_unknown_job_returns_none() -> None:
     manager = JobManager()
     assert manager.cancel("does-not-exist") is None
+
+
+def test_can_retry_a_failed_job_during_the_same_session(tmp_path: Path) -> None:
+    calls = 0
+
+    def flaky_download(request, progress_hook=None) -> DownloadOutcome:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise DownloadFailed("Temporary failure")
+        return DownloadOutcome(total_items=1, available_items=1, unavailable_items=0)
+
+    manager = JobManager()
+    with patch("playlist_audio.web.jobs.download", side_effect=flaky_download):
+        failed = manager.create(make_request(tmp_path))
+        deadline = monotonic() + 2
+        while (
+            manager.get(failed["id"])["state"] in {"queued", "running"} and monotonic() < deadline
+        ):
+            sleep(0.01)
+
+        retried = manager.retry(failed["id"])
+        assert retried is not None
+        deadline = monotonic() + 2
+        while (
+            manager.get(retried["id"])["state"] in {"queued", "running"} and monotonic() < deadline
+        ):
+            sleep(0.01)
+
+    assert manager.get(retried["id"])["state"] == "completed"
+
+
+def test_history_is_trimmed_after_jobs_finish(tmp_path: Path) -> None:
+    state_path = tmp_path / "state.json"
+    manager = JobManager(state_path=state_path)
+
+    with patch("playlist_audio.web.jobs.download", return_value=DownloadOutcome(1, 1, 0)):
+        for _ in range(25):
+            created = manager.create(make_request(tmp_path))
+            deadline = monotonic() + 2
+            while (
+                manager.get(created["id"]) is not None
+                and manager.get(created["id"])["state"] in {"queued", "running"}
+                and monotonic() < deadline
+            ):
+                sleep(0.005)
+
+        deadline = monotonic() + 2
+        while manager.snapshot()["counts"]["running"] and monotonic() < deadline:
+            sleep(0.005)
+
+    persisted = state_path.read_text(encoding="utf-8")
+    assert persisted.count('"sequence"') == 20
+    assert "PL123" not in persisted
 
 
 def test_manager_without_state_path_does_not_write_a_file(tmp_path: Path) -> None:
@@ -226,6 +289,7 @@ def test_restores_and_resumes_queue_after_restart(tmp_path: Path) -> None:
         while manager2.get(queued["id"])["state"] != "completed" and monotonic() < deadline:
             sleep(0.01)
         assert manager2.get(queued["id"])["state"] == "completed"
+        assert "PL123" not in state_path.read_text(encoding="utf-8")
 
 
 def test_jobs_added_during_download_run_in_fifo_order(tmp_path: Path) -> None:
