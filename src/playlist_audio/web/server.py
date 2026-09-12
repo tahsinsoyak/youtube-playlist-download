@@ -6,6 +6,7 @@ from http.server import ThreadingHTTPServer
 
 from rich.console import Console
 
+from playlist_audio.preflight import readiness_status
 from playlist_audio.web.handler import make_handler
 from playlist_audio.web.jobs import JobManager
 from playlist_audio.web.persistence import DEFAULT_STATE_PATH
@@ -20,21 +21,38 @@ class LocalUIServer(ThreadingHTTPServer):
     allow_reuse_address = True
 
 
-def create_server(port: int, manager: JobManager | None = None) -> LocalUIServer:
+def create_server(
+    port: int,
+    manager: JobManager | None = None,
+    health: dict[str, object] | None = None,
+) -> LocalUIServer:
     """Create a loopback server; port 0 is supported for tests."""
-    return LocalUIServer((LOOPBACK_HOST, port), make_handler(manager or JobManager()))
+    return LocalUIServer(
+        (LOOPBACK_HOST, port),
+        make_handler(manager or JobManager(), health=health),
+    )
 
 
 def run_ui(port: int, open_browser: bool = True) -> None:
     """Run until Ctrl+C and optionally open the default browser."""
     console = Console()
-    server = create_server(port, manager=JobManager(state_path=DEFAULT_STATE_PATH))
+    health = readiness_status()
+    server = create_server(
+        port,
+        manager=JobManager(state_path=DEFAULT_STATE_PATH),
+        health=health,
+    )
     actual_port = server.server_port
     url = f"http://{LOOPBACK_HOST}:{actual_port}"
 
     console.print("\n[bold]YouTube Playlist Download UI is ready.[/bold]")
     console.print(f"Address: [link={url}]{url}[/link]")
     console.print("Available only on this computer. Press Ctrl+C to stop.\n")
+    if not health["download_ready"]:
+        console.print(
+            "[yellow]Setup is incomplete. Safe previews may still work; "
+            "run 'youtube-playlist-download doctor' for details.[/yellow]\n"
+        )
 
     if open_browser:
         threading.Timer(0.35, webbrowser.open, args=(url,)).start()

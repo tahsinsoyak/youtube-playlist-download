@@ -9,6 +9,12 @@ from playlist_audio.downloader import DownloadFailed, download
 from playlist_audio.models import Browser, DownloadRequest
 
 
+@pytest.fixture(autouse=True)
+def ready_environment():
+    with patch("playlist_audio.downloader.readiness_error", return_value=None):
+        yield
+
+
 def test_download_creates_state_directories_and_calls_yt_dlp(tmp_path: Path) -> None:
     request = DownloadRequest(
         url="https://www.youtube.com/playlist?list=PL123",
@@ -48,6 +54,28 @@ def test_download_attaches_progress_hook(tmp_path: Path) -> None:
         download(request, progress_hook=hook)
 
     assert youtube_dl.call_args.args[0]["progress_hooks"] == [hook]
+    assert youtube_dl.call_args.args[0]["postprocessor_hooks"] == [hook]
+
+
+def test_download_stops_before_writing_when_setup_is_incomplete(tmp_path: Path) -> None:
+    request = DownloadRequest(
+        url="https://www.youtube.com/watch?v=abc123",
+        output_dir=tmp_path / "music",
+        archive_file=tmp_path / "archive.txt",
+    )
+
+    with (
+        patch(
+            "playlist_audio.downloader.readiness_error",
+            return_value="Cannot start the download; missing or unsupported: FFmpeg.",
+        ),
+        patch("playlist_audio.downloader.YoutubeDL") as youtube_dl,
+        pytest.raises(DownloadFailed, match="FFmpeg"),
+    ):
+        download(request)
+
+    youtube_dl.assert_not_called()
+    assert not request.output_dir.exists()
 
 
 def test_chrome_cookie_lock_has_actionable_error(tmp_path: Path) -> None:

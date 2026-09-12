@@ -6,6 +6,7 @@ from typer.testing import CliRunner
 from playlist_audio.cli import app
 from playlist_audio.config import ConfigDefaults
 from playlist_audio.downloader import DownloadOutcome
+from playlist_audio.preflight import Check
 
 runner = CliRunner()
 PLAYLIST_URL = "https://www.youtube.com/playlist?list=PL123"
@@ -25,6 +26,17 @@ def test_version_uses_public_project_name() -> None:
 
     assert result.exit_code == 0
     assert "youtube-playlist-download 0.2.0" in result.stdout
+
+
+def test_doctor_exits_cleanly_when_a_dependency_is_missing() -> None:
+    checks = [Check("FFmpeg", False, "Not found")]
+    with patch("playlist_audio.cli.run_checks", return_value=checks):
+        result = runner.invoke(app, ["doctor"])
+
+    assert result.exit_code == 1
+    assert "Reliable YouTube/audio processing is unavailable" in result.stdout
+    assert result.exception is not None
+    assert result.exception.__class__.__name__ == "SystemExit"
 
 
 def test_download_requires_rights_confirmation() -> None:
