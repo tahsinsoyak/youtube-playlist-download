@@ -7,8 +7,9 @@ const STATE_LABELS = {
 };
 
 export class JobView {
-  constructor(onCancel) {
+  constructor(onCancel, onRetry) {
     this.onCancel = onCancel;
+    this.onRetry = onRetry;
     this.statusPanel = document.querySelector("#job-status");
     this.jobState = document.querySelector("#job-state");
     this.jobMessage = document.querySelector("#job-message");
@@ -19,9 +20,17 @@ export class JobView {
     this.metricSpeed = document.querySelector("#metric-speed");
     this.metricBytes = document.querySelector("#metric-bytes");
     this.metricEta = document.querySelector("#metric-eta");
+    this.cancelActiveButton = document.querySelector("#cancel-active-button");
+    this.retryJobButton = document.querySelector("#retry-job-button");
     this.queuePanel = document.querySelector("#queue-panel");
     this.queueCount = document.querySelector("#queue-count");
     this.queueList = document.querySelector("#queue-list");
+    this.cancelActiveButton.addEventListener("click", () => {
+      if (this.currentJobId) this.onCancel?.(this.currentJobId);
+    });
+    this.retryJobButton.addEventListener("click", () => {
+      if (this.currentJobId) this.onRetry?.(this.currentJobId);
+    });
   }
 
   showError(message) {
@@ -34,6 +43,8 @@ export class JobView {
     this.jobProgress.removeAttribute("value");
     this.jobPercent.textContent = "";
     this._renderMetrics({});
+    this.cancelActiveButton.hidden = true;
+    this.retryJobButton.hidden = true;
   }
 
   renderSnapshot(snapshot) {
@@ -51,6 +62,7 @@ export class JobView {
   }
 
   _renderJob(job) {
+    this.currentJobId = job.id;
     this.statusPanel.hidden = false;
     this.statusPanel.dataset.state = job.state;
     this.statusPanel.dataset.warning = String(Boolean(job.unavailable_items));
@@ -75,6 +87,12 @@ export class JobView {
       this.jobPercent.textContent = "";
     }
     this._renderMetrics(job);
+    this.cancelActiveButton.hidden = job.state !== "running";
+    this.cancelActiveButton.disabled = job.message === "Cancellation requested";
+    this.cancelActiveButton.textContent = this.cancelActiveButton.disabled
+      ? "Stopping…"
+      : "Cancel active job";
+    this.retryJobButton.hidden = !["failed", "cancelled"].includes(job.state);
   }
 
   _renderMetrics(job) {
@@ -100,7 +118,8 @@ export class JobView {
       const cancel = document.createElement("button");
 
       title.textContent = `Playlist job ${String(job.sequence).padStart(2, "0")}`;
-      detail.textContent = job.dry_run ? "Safe preview" : `MP3 · ${job.output}`;
+      const format = (job.audio_format || "audio").toUpperCase();
+      detail.textContent = job.dry_run ? "Safe preview" : `${format} · ${job.output}`;
       position.className = "queue-position";
       position.textContent = `Position ${job.queue_position}`;
       cancel.type = "button";

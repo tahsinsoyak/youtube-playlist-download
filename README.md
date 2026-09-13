@@ -44,7 +44,7 @@ write browser cookies to disk.
 - Public, unlisted, and authorized private playlist support
 - Lightweight localhost web UI with no frontend framework
 - FIFO queue that accepts new playlists during an active download, with
-  per-job cancellation before a job starts
+  queued and active-job cancellation plus same-session retry
 - Queue and recent history persisted to disk and restored on restart
 - Live KB/s, transferred size, track count, overall progress, and ETA
 - Best available audio stream converted to MP3, M4A, or Opus
@@ -53,6 +53,7 @@ write browser cookies to disk.
 - Playlist order preserved in folder and file names
 - Download archive that prevents accidental duplicates
 - Safe preview (`--dry-run`) and dependency diagnostics (`doctor`)
+- Clear setup status in the UI before a preview or download starts
 - Optional config file for repeated CLI/UI defaults
 - Downloadable job-history export (JSON)
 - No password or cookie-file input
@@ -75,6 +76,15 @@ cd youtube-playlist-download
 uv sync --locked
 uv run youtube-playlist-download doctor
 uv run youtube-playlist-download ui
+```
+
+The repository uses a tested, locked yt-dlp release. Dependabot checks for
+stable yt-dlp updates daily and opens a pull request that must pass the test
+suite before it is merged. To update a local checkout immediately:
+
+```powershell
+uv lock --upgrade-package yt-dlp
+uv sync --locked
 ```
 
 If the browser does not open automatically, visit `http://127.0.0.1:8765`.

@@ -231,6 +231,30 @@ details[open] summary::after { content: "−"; }
   font-size: 22px;
 }
 
+.job-actions {
+  display: flex;
+  margin-top: 16px;
+  gap: 10px;
+}
+
+.job-actions button {
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: 700 9px var(--body-font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.job-actions button:hover:not(:disabled) {
+  border-color: var(--signal);
+  color: var(--paper);
+}
+
+.job-actions button:disabled { cursor: wait; opacity: 0.55; }
+
 .job-status {
   margin-top: 24px;
   padding: 18px;

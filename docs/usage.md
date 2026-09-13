@@ -35,6 +35,7 @@ Core options:
 | `--browser` | none | Signed-in browser session for private content |
 | `--browser-profile` | none | Specific browser profile |
 | `--audio-quality` | `0` | FFmpeg VBR quality; `0` is best |
+| `--audio-format` | `mp3` | Output codec: MP3, M4A, or Opus |
 | `--playlist-items` | all | Playlist positions or ranges to download |
 | `--archive` | under output | IDs of successful downloads |
 | `--dry-run` | off | Check access and selection without writing media |
@@ -100,9 +101,10 @@ output = "D:/Music/YouTube Archive"
 browser = "firefox"
 browser_profile = "default-release"
 audio_quality = "0"
+audio_format = "mp3"
 port = 8765
 ```
 
-Recognized keys: `output`, `browser`, `browser_profile`, and `audio_quality`
-(used by `download`), and `port` (used by `ui`). Unknown keys are ignored, and
-a missing or unreadable file is treated the same as no config at all.
+Recognized keys: `output`, `browser`, `browser_profile`, `audio_quality`, and
+`audio_format` (used by `download`), and `port` (used by `ui`). Unknown keys are
+ignored, and a missing or unreadable file is treated the same as no config at all.

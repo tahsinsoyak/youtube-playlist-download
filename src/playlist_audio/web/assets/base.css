@@ -115,6 +115,11 @@ body::before {
   box-shadow: 0 0 12px rgba(215, 250, 104, 0.8);
 }
 
+.local-badge[data-warning="true"] .status-led {
+  background: #f7bd58;
+  box-shadow: 0 0 12px rgba(247, 189, 88, 0.55);
+}
+
 main {
   display: grid;
   width: min(1180px, calc(100% - 48px));
