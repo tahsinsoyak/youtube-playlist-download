@@ -50,8 +50,8 @@ close Chrome completely, or use a signed-in Firefox profile as the source.
 Keep `yt-dlp` and this project current:
 
 ```powershell
-uv lock --upgrade
-uv sync
+uv lock --upgrade-package yt-dlp
+uv sync --locked
 ```
 
 Then open YouTube normally in the browser and confirm the account works. Do not

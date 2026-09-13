@@ -33,7 +33,7 @@ Press `Ctrl+C` in the terminal running the server to stop it.
 5. Keep `Safe preview` enabled, confirm your rights, and start the job.
 6. After a successful preview, the URL stays in place and preview mode turns
    off automatically.
-7. Select `Access confirmed — download MP3` to start the real download.
+7. Select `Access confirmed — download FORMAT` to start the real download.
 
 Open `Fine controls` to change the audio format, VBR quality, playlist
 positions, browser profile, cover art, and metadata options.
@@ -52,9 +52,9 @@ The live panel displays:
 - ETA reported by `yt-dlp`
 - Pending job count and FIFO queue position
 
-Each queued job (not yet started) shows a `Cancel` button. Cancelling removes it
-from the queue without affecting the job currently downloading. The active job
-cannot be cancelled once it has started.
+Each queued job shows a `Cancel` button. The active job can also be stopped; the
+request takes effect at the next yt-dlp download or post-processing progress
+event. Failed and cancelled jobs can be retried during the same app session.
 
 If a playlist contains deleted or regionally unavailable entries, accessible
 items continue processing. The result reports how many entries were available
@@ -64,8 +64,9 @@ The queue and recent history are saved to `~/.playlist-audio/queue-state.json`
 after every job change and restored the next time the server starts. Pending
 jobs resume automatically; a job that was still downloading when the server
 stopped is shown as interrupted instead, since a yt-dlp run in progress can't
-be safely resumed. Completed MP3 files and the download archive remain on
-disk regardless.
+be safely resumed. Completed audio files and the download archive remain on
+disk regardless. Source URLs and browser profile names are removed from
+persisted terminal-job history.
 
 ## Exporting history
 

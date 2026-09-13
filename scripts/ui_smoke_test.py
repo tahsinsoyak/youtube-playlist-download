@@ -46,7 +46,9 @@ def run() -> None:
         expect(page.get_by_role("heading", name="Bring your playlist home.")).to_be_visible()
         expect(page.get_by_role("heading", name="Interface or terminal.")).to_be_visible()
         expect(page.locator(".access-card code")).to_have_count(2)
-        expect(page.locator("#health-badge")).to_have_attribute("data-connected", "true")
+        expect(page.locator("#health-badge")).to_contain_text(
+            re.compile(r"Local device only|Preview ready"),
+        )
 
         profile = page.locator("#browser-profile")
         expect(profile).to_be_disabled()
@@ -65,6 +67,11 @@ def run() -> None:
         mode_toggle.click()
         expect(dry_run).not_to_be_checked()
         expect(button_label).to_have_text("Start MP3 download")
+        page.locator("details summary").click()
+        page.locator("#format").select_option("opus")
+        expect(button_label).to_have_text("Start OPUS download")
+        page.locator("#format").select_option("mp3")
+        page.locator("details summary").click()
         mode_toggle.click()
         expect(dry_run).to_be_checked()
 
@@ -100,6 +107,7 @@ def run() -> None:
                 "item_count": 10,
                 "queue_position": None,
                 "dry_run": False,
+                "audio_format": "opus",
                 "output": "Music Library",
             },
             "queued": [
@@ -109,13 +117,29 @@ def run() -> None:
                     "state": "queued",
                     "queue_position": 1,
                     "dry_run": False,
+                    "audio_format": "opus",
                     "output": "Music Library",
                 }
             ],
             "recent": [],
             "counts": {"running": 1, "queued": 1},
         }
+        ready_health = {
+            "status": "ok",
+            "scope": "localhost",
+            "preview_ready": True,
+            "download_ready": True,
+            "checks": [],
+        }
         queue_page = browser.new_page(viewport={"width": 1440, "height": 1100})
+        queue_page.route(
+            "**/api/health",
+            lambda route: route.fulfill(
+                status=200,
+                content_type="application/json",
+                body=json.dumps(ready_health),
+            ),
+        )
         queue_page.route(
             "**/api/jobs",
             lambda route: route.fulfill(
@@ -133,6 +157,8 @@ def run() -> None:
         expect(queue_page.locator("#metric-eta")).to_have_text("1 min 15 sec")
         expect(queue_page.locator("#queue-count")).to_have_text("1 waiting")
         expect(queue_page.locator("#queue-list li")).to_have_count(1)
+        expect(queue_page.locator("#queue-list li small")).to_contain_text("OPUS")
+        expect(queue_page.locator("#cancel-active-button")).to_be_visible()
         expect(queue_page.locator("#submit-button")).to_be_enabled()
         expect(queue_page.locator("#button-label")).to_have_text("Queue preview")
         queue_page.screenshot(path=RESULTS_DIR / "ui-queue.png", full_page=True)
@@ -141,6 +167,14 @@ def run() -> None:
         queue_page.close()
 
         mobile = browser.new_page(viewport={"width": 390, "height": 844})
+        mobile.route(
+            "**/api/health",
+            lambda route: route.fulfill(
+                status=200,
+                content_type="application/json",
+                body=json.dumps(ready_health),
+            ),
+        )
         mobile.route(
             "**/api/jobs",
             lambda route: route.fulfill(

@@ -5,16 +5,18 @@ const urlInput = document.querySelector("#url");
 const browserSelect = document.querySelector("#browser");
 const browserProfile = document.querySelector("#browser-profile");
 const dryRun = document.querySelector("#dry-run");
+const formatSelect = document.querySelector("#format");
 const submitButton = document.querySelector("#submit-button");
 const buttonLabel = document.querySelector("#button-label");
 const healthBadge = document.querySelector("#health-badge");
-const jobView = new JobView(cancelJob);
+const jobView = new JobView(cancelJob, retryJob);
 
 let pollTimer = null;
 let hasQueuedWork = false;
 let isSubmitting = false;
 let pendingPreviewJobId = null;
 let previewReady = false;
+let environment = null;
 
 function currentBrowser() {
   const agent = navigator.userAgent;
@@ -31,6 +33,7 @@ function browserLabel(value) {
 
 function updateModeLabel() {
   const isPreview = dryRun.checked;
+  const format = formatSelect.value.toUpperCase();
   dryRun.closest(".toggle").querySelector("b").textContent = isPreview ? "On" : "Off";
 
   if (isSubmitting) {
@@ -40,9 +43,9 @@ function updateModeLabel() {
       ? "Queue preview"
       : "Queue playlist";
   } else if (previewReady && !isPreview) {
-    buttonLabel.textContent = "Access confirmed — download MP3";
+    buttonLabel.textContent = `Access confirmed — download ${format}`;
   } else {
-    buttonLabel.textContent = isPreview ? "Start safe preview" : "Start MP3 download";
+    buttonLabel.textContent = isPreview ? "Start safe preview" : `Start ${format} download`;
   }
 }
 
@@ -129,10 +132,29 @@ async function cancelJob(jobId) {
   try {
     const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`, {
       method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
     });
     if (!response.ok) {
       const result = await response.json();
       throw new Error(result.error || "Could not cancel the job.");
+    }
+    await refreshJobs();
+  } catch (error) {
+    jobView.showError(error.message);
+  }
+}
+
+async function retryJob(jobId) {
+  try {
+    const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/retry`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || "Could not retry the job.");
     }
     await refreshJobs();
   } catch (error) {
@@ -153,6 +175,17 @@ form.addEventListener("submit", async (event) => {
   setSubmitting(true);
   try {
     const payload = formPayload();
+    const ready = payload.dry_run ? environment?.preview_ready : environment?.download_ready;
+    if (ready === false) {
+      const required = payload.dry_run
+        ? ["Python", "yt-dlp", "JavaScript"]
+        : ["Python", "yt-dlp", "JavaScript", "FFmpeg", "ffprobe"];
+      const missing = (environment.checks || [])
+        .filter((check) => required.includes(check.name) && !check.ok)
+        .map((check) => check.name)
+        .join(", ");
+      throw new Error(`Setup required (${missing}). Run the doctor command in the terminal.`);
+    }
     const response = await fetch("/api/jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -180,6 +213,7 @@ form.addEventListener("submit", async (event) => {
 });
 
 browserSelect.addEventListener("change", updateBrowserProfile);
+formatSelect.addEventListener("change", updateModeLabel);
 dryRun.addEventListener("change", () => {
   if (dryRun.checked) {
     previewReady = false;
@@ -195,8 +229,15 @@ urlInput.addEventListener("input", () => {
 fetch("/api/health")
   .then(async (response) => {
     if (!response.ok) throw new Error();
-    await response.json();
-    healthBadge.dataset.connected = "true";
+    environment = await response.json();
+    if (environment.download_ready) {
+      healthBadge.dataset.connected = "true";
+    } else {
+      healthBadge.dataset.warning = "true";
+      healthBadge.querySelector("span:last-child").textContent = environment.preview_ready
+        ? "Preview ready · setup needed"
+        : "Setup required";
+    }
   })
   .catch(() => {
     healthBadge.querySelector("span:last-child").textContent = "Connection problem";
