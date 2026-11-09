@@ -54,24 +54,41 @@ Most online YouTube downloaders **fail on private playlists** (such as your "Lik
 * **[Deno 2.3+](https://docs.deno.com/runtime/getting_started/installation/)** (recommended) or **Node.js 22+** (required by modern `yt-dlp` to deobfuscate YouTube signatures)
 * **[uv](https://docs.astral.sh/uv/)** (recommended for fast, reproducible Python setup)
 
-### Installation (Windows PowerShell)
-
 ```powershell
-# 1. Install system prerequisites (if not already installed)
+# Install system prerequisites (Windows PowerShell)
 winget install Gyan.FFmpeg
 winget install DenoLand.Deno
+```
 
-# 2. Clone the repository
+### Option A: One-Command Global Tool (Run From Anywhere)
+
+Install directly as a standalone CLI & Web UI tool using `uv tool` or `pipx`:
+
+```powershell
+# Install globally from GitHub
+uv tool install git+https://github.com/tahsinsoyak/youtube-playlist-download.git
+
+# Launch the local Web UI from any folder
+youtube-playlist-download ui
+
+# Or use the CLI shortcut
+playlist-audio download "PLAYLIST_URL" --confirm-rights
+```
+
+### Option B: Clone & Run Locally
+
+```powershell
+# 1. Clone the repository
 git clone https://github.com/tahsinsoyak/youtube-playlist-download.git
 cd youtube-playlist-download
 
-# 3. Synchronize virtual environment
+# 2. Synchronize virtual environment
 uv sync --locked
 
-# 4. Verify your environment setup
+# 3. Verify your environment setup
 uv run youtube-playlist-download doctor
 
-# 5. Launch the local Web UI
+# 4. Launch the local Web UI
 uv run youtube-playlist-download ui
 ```
 
@@ -118,7 +135,10 @@ By default, files are organized into `downloads/<playlist_title>/001 - Title [ID
 | Feature | Description |
 |---|---|
 | **Zero-Framework Web UI** | Pure, lightweight HTML5/CSS3/ES6 interface—no heavy Node build steps or frontend bundles. |
+| **Dark & Light Studio Themes** | Switch between the tactile dark cassette deck and clean warm studio light paper themes with system sync. |
+| **Folder Reveal & Copy Path** | One-click button in the UI to open downloaded playlist folders in Windows File Explorer or copy the full path. |
 | **Sequential FIFO Queue** | Add new playlists while a download is running. One download processes at a time to prevent YouTube rate-limiting. |
+| **Recent History & Clean-up** | Inspect recent download outcomes and clear completed or cancelled jobs in one click. |
 | **Live Diagnostics** | Real-time transfer speed (KB/s), downloaded megabytes, current track position, and dynamic ETA calculations. |
 | **Instant Cancellation & Retry** | Cancel queued or active jobs immediately—even during the metadata discovery phase—and retry with one click. |
 | **Audiophile Quality** | Extracts highest available audio stream converted with FFmpeg VBR quality `0` (or pristine Opus/M4A). |

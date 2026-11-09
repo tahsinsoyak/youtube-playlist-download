@@ -371,3 +371,63 @@ def test_jobs_added_during_download_run_in_fifo_order(tmp_path: Path) -> None:
     assert manager.get(first["id"])["state"] == "completed"
     assert manager.get(second["id"])["state"] == "completed"
     assert manager.snapshot()["counts"] == {"running": 0, "queued": 0}
+
+
+def test_clear_history_removes_terminal_jobs_retaining_queue(tmp_path: Path) -> None:
+    first_started = Event()
+    release_first = Event()
+
+    def fake_download(request, progress_hook=None, **_kwargs: object) -> None:
+        first_started.set()
+        assert release_first.wait(timeout=2)
+
+    manager = JobManager(state_path=tmp_path / "state.json")
+
+    with patch("playlist_audio.web.jobs.download", side_effect=fake_download):
+        first = manager.create(make_request(tmp_path))
+        assert first_started.wait(timeout=2)
+        second = manager.create(
+            DownloadRequest(
+                url="https://www.youtube.com/playlist?list=PL456",
+                output_dir=tmp_path,
+                archive_file=tmp_path / "archive.txt",
+                dry_run=True,
+            )
+        )
+        third = manager.create(
+            DownloadRequest(
+                url="https://www.youtube.com/playlist?list=PL789",
+                output_dir=tmp_path,
+                archive_file=tmp_path / "archive.txt",
+                dry_run=True,
+            )
+        )
+        # Cancel third job while still queued
+        cancelled = manager.cancel(third["id"])
+        assert cancelled is not None
+        assert cancelled["state"] == "cancelled"
+
+        # At this point: first is running, second is queued, third is cancelled
+        snapshot_before = manager.snapshot()
+        assert len(snapshot_before["recent"]) == 1
+        assert snapshot_before["recent"][0]["id"] == third["id"]
+
+        # Clear history: should remove the cancelled job, keeping active and queued
+        cleared_count = manager.clear_history()
+        assert cleared_count == 1
+        assert manager.get(third["id"]) is None
+        assert manager.get(first["id"]) is not None
+        assert manager.get(second["id"]) is not None
+        assert manager.snapshot()["recent"] == []
+
+        # Finish the remaining jobs
+        release_first.set()
+        deadline = monotonic() + 2
+        while manager.get(second["id"])["state"] != "completed" and monotonic() < deadline:
+            sleep(0.01)
+
+    # Now both first and second are completed
+    assert len(manager.snapshot()["recent"]) == 2
+    cleared_count = manager.clear_history()
+    assert cleared_count == 2
+    assert manager.snapshot()["recent"] == []

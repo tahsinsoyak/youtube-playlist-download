@@ -139,6 +139,19 @@ class JobManager:
             request = job.request
         return self.create(request)
 
+    def clear_history(self) -> int:
+        """Remove completed, failed, and cancelled jobs from history."""
+        with self._lock:
+            to_remove = [
+                job_id
+                for job_id, job in self._jobs.items()
+                if job.state in {"completed", "failed", "cancelled"}
+            ]
+            for job_id in to_remove:
+                self._jobs.pop(job_id, None)
+        self._persist()
+        return len(to_remove)
+
     def snapshot(self) -> dict[str, Any]:
         """Return the active job, pending queue and bounded recent history."""
         with self._lock:
