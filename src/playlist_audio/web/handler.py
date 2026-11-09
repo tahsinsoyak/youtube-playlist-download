@@ -2,9 +2,14 @@
 
 import json
 import mimetypes
+import os
+import platform
+import subprocess
+from contextlib import suppress
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from importlib.resources import files
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -14,6 +19,24 @@ from playlist_audio.web.request_parser import RequestError, parse_download_reque
 
 MAX_BODY_BYTES = 64 * 1024
 ASSET_PACKAGE = "playlist_audio.web.assets"
+
+
+def open_directory(path: Path) -> bool:
+    """Reveal or open a directory in the native file explorer."""
+    if not path.is_dir():
+        return False
+    try:
+        if hasattr(os, "startfile"):
+            os.startfile(str(path))
+            return True
+        current_os = platform.system()
+        if current_os == "Darwin":
+            subprocess.Popen(["open", str(path)])
+            return True
+        subprocess.Popen(["xdg-open", str(path)])
+        return True
+    except OSError:
+        return False
 
 
 def make_handler(
@@ -56,10 +79,15 @@ def make_handler(
                 self._json(HTTPStatus.NOT_FOUND, {"error": "Page not found."})
 
         def do_DELETE(self) -> None:  # noqa: N802
+            self._drain_body()
             if not self._is_local_json_request():
                 self._json(HTTPStatus.FORBIDDEN, {"error": "Local request validation failed."})
                 return
             path = urlsplit(self.path).path
+            if path == "/api/jobs/history":
+                cleared = manager.clear_history()
+                self._json(HTTPStatus.OK, {"cleared": cleared})
+                return
             if not path.startswith("/api/jobs/"):
                 self._json(HTTPStatus.NOT_FOUND, {"error": "Page not found."})
                 return
@@ -76,10 +104,22 @@ def make_handler(
                     {"error": "Job cannot be cancelled; it may have already started."},
                 )
 
+        def _drain_body(self) -> None:
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                length = 0
+            if 0 < length <= MAX_BODY_BYTES:
+                with suppress(OSError):
+                    self.rfile.read(length)
+
         def do_POST(self) -> None:  # noqa: N802
             path = urlsplit(self.path).path
             if path.startswith("/api/jobs/") and path.endswith("/retry"):
                 self._retry_job(path.removeprefix("/api/jobs/").removesuffix("/retry"))
+                return
+            if path.startswith("/api/jobs/") and path.endswith("/open-folder"):
+                self._open_job_folder(path.removeprefix("/api/jobs/").removesuffix("/open-folder"))
                 return
             if path != "/api/jobs":
                 self._json(HTTPStatus.NOT_FOUND, {"error": "Page not found."})
@@ -114,6 +154,7 @@ def make_handler(
                 self._json(HTTPStatus.ACCEPTED, job)
 
         def _retry_job(self, job_id: str) -> None:
+            self._drain_body()
             if not self._is_local_json_request():
                 self._json(HTTPStatus.FORBIDDEN, {"error": "Local request validation failed."})
                 return
@@ -136,6 +177,43 @@ def make_handler(
                     HTTPStatus.CONFLICT,
                     {"error": "This job cannot be retried after restart or while it is active."},
                 )
+
+        def _open_job_folder(self, job_id: str) -> None:
+            self._drain_body()
+            if not self._is_local_json_request():
+                self._json(HTTPStatus.FORBIDDEN, {"error": "Local request validation failed."})
+                return
+            existing = manager.get(job_id)
+            if existing is None:
+                self._json(HTTPStatus.NOT_FOUND, {"error": "Job not found."})
+                return
+            if existing.get("dry_run"):
+                self._json(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "Safe preview jobs do not create output folders."},
+                )
+                return
+            output_raw = str(existing.get("output", "")).strip()
+            if not output_raw:
+                self._json(
+                    HTTPStatus.NOT_FOUND,
+                    {"error": "Output directory not specified."},
+                )
+                return
+            output_path = Path(output_raw).resolve()
+            if not output_path.is_dir():
+                self._json(
+                    HTTPStatus.NOT_FOUND,
+                    {"error": "Output directory does not exist on disk."},
+                )
+                return
+            if not open_directory(output_path):
+                self._json(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "Could not open folder in file manager."},
+                )
+                return
+            self._json(HTTPStatus.OK, {"ok": True, "path": str(output_path)})
 
         def _is_local_json_request(self) -> bool:
             port = self.server.server_port  # type: ignore[attr-defined]

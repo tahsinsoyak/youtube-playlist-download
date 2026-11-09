@@ -20,9 +20,24 @@ READY_HEALTH = {
 
 
 class FakeManager:
+    def __init__(self, output_dir: str = "test_output") -> None:
+        self.output_dir = output_dir
+
     def get(self, job_id: str) -> dict[str, Any] | None:
         if job_id == "known":
-            return {"id": "known", "state": "completed"}
+            return {
+                "id": "known",
+                "state": "completed",
+                "dry_run": False,
+                "output": self.output_dir,
+            }
+        if job_id == "preview":
+            return {
+                "id": "preview",
+                "state": "completed",
+                "dry_run": True,
+                "output": self.output_dir,
+            }
         if job_id == "queued":
             return {"id": "queued", "state": "queued"}
         return None
@@ -40,6 +55,9 @@ class FakeManager:
             return {"id": "retried-job", "state": "queued"}
         return None
 
+    def clear_history(self) -> int:
+        return 3
+
     def snapshot(self) -> dict[str, Any]:
         return {
             "active": None,
@@ -50,10 +68,10 @@ class FakeManager:
 
 
 @contextmanager
-def running_server(health: dict[str, object] | None = None):
+def running_server(health: dict[str, object] | None = None, manager: Any = None):
     server = create_server(  # type: ignore[arg-type]
         0,
-        manager=FakeManager(),
+        manager=manager or FakeManager(),
         health=health or READY_HEALTH,
     )
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -235,3 +253,68 @@ def test_exports_job_history_as_a_download() -> None:
             assert disposition == 'attachment; filename="job-history.json"'
             body = json.load(response)
             assert body["counts"] == {"running": 0, "queued": 0}
+
+
+def test_clears_job_history() -> None:
+    with running_server() as base_url:
+        request = Request(f"{base_url}/api/jobs/history", method="DELETE")
+        request.add_header("Content-Type", "application/json")
+        request.add_header("Origin", base_url)
+        with urlopen(request, timeout=2) as response:
+            assert response.status == 200
+            result = json.load(response)
+            assert result == {"cleared": 3}
+
+
+def test_open_folder_for_preview_job_returns_400() -> None:
+    with running_server() as base_url:
+        request = Request(
+            f"{base_url}/api/jobs/preview/open-folder",
+            data=b"{}",
+            method="POST",
+            headers={"Content-Type": "application/json", "Origin": base_url},
+        )
+        try:
+            urlopen(request, timeout=2)
+        except HTTPError as error:
+            assert error.code == 400
+        else:
+            raise AssertionError("Preview job folder open should return 400")
+
+
+def test_open_folder_for_missing_job_returns_404() -> None:
+    with running_server() as base_url:
+        request = Request(
+            f"{base_url}/api/jobs/missing/open-folder",
+            data=b"{}",
+            method="POST",
+            headers={"Content-Type": "application/json", "Origin": base_url},
+        )
+        try:
+            urlopen(request, timeout=2)
+        except HTTPError as error:
+            assert error.code == 404
+        else:
+            raise AssertionError("Missing job folder open should return 404")
+
+
+def test_open_folder_success(tmp_path) -> None:
+    output_dir = tmp_path / "downloads"
+    output_dir.mkdir()
+    fake_mgr = FakeManager(output_dir=str(output_dir))
+    with running_server(manager=fake_mgr) as base_url:
+        request = Request(
+            f"{base_url}/api/jobs/known/open-folder",
+            data=b"{}",
+            method="POST",
+            headers={"Content-Type": "application/json", "Origin": base_url},
+        )
+        from unittest.mock import patch
+
+        with patch("playlist_audio.web.handler.open_directory", return_value=True) as mock_open:
+            with urlopen(request, timeout=2) as response:
+                assert response.status == 200
+                result = json.load(response)
+                assert result["ok"] is True
+                assert result["path"] == str(output_dir.resolve())
+            mock_open.assert_called_once_with(output_dir.resolve())

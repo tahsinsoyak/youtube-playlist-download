@@ -9,7 +9,37 @@ const formatSelect = document.querySelector("#format");
 const submitButton = document.querySelector("#submit-button");
 const buttonLabel = document.querySelector("#button-label");
 const healthBadge = document.querySelector("#health-badge");
-const jobView = new JobView(cancelJob, retryJob);
+const themeToggle = document.querySelector("#theme-toggle");
+const themeIcon = themeToggle?.querySelector(".theme-icon");
+const themeText = themeToggle?.querySelector(".theme-text");
+const jobView = new JobView(cancelJob, retryJob, openFolder, clearHistory);
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+  const isLight = theme === "light";
+  if (themeIcon) themeIcon.textContent = isLight ? "🌙" : "☀️";
+  if (themeText) themeText.textContent = isLight ? "Dark" : "Light";
+  try {
+    localStorage.setItem("theme", theme);
+  } catch {}
+}
+
+const savedTheme = (() => {
+  try {
+    return localStorage.getItem("theme");
+  } catch {
+    return null;
+  }
+})();
+const prefersLight =
+  window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+applyTheme(savedTheme || (prefersLight ? "light" : "dark"));
+
+themeToggle?.addEventListener("click", () => {
+  const current = document.documentElement.dataset.theme || "dark";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
 
 let pollTimer = null;
 let hasQueuedWork = false;
@@ -155,6 +185,39 @@ async function retryJob(jobId) {
     const result = await response.json();
     if (!response.ok) {
       throw new Error(result.error || "Could not retry the job.");
+    }
+    await refreshJobs();
+  } catch (error) {
+    jobView.showError(error.message);
+  }
+}
+
+async function openFolder(jobId) {
+  try {
+    const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/open-folder`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || "Could not open folder.");
+    }
+  } catch (error) {
+    jobView.showError(error.message);
+  }
+}
+
+async function clearHistory() {
+  try {
+    const response = await fetch("/api/jobs/history", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || "Could not clear history.");
     }
     await refreshJobs();
   } catch (error) {

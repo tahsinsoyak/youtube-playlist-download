@@ -5,7 +5,7 @@ import pytest
 from yt_dlp.cookies import CookieLoadError
 from yt_dlp.utils import DownloadError
 
-from playlist_audio.downloader import DownloadFailed, download
+from playlist_audio.downloader import DownloadCancelled, DownloadFailed, download
 from playlist_audio.models import Browser, DownloadRequest
 
 
@@ -172,3 +172,106 @@ def test_download_fails_when_no_playlist_entry_is_available(tmp_path: Path) -> N
         pytest.raises(DownloadFailed, match="no accessible items"),
     ):
         download(request)
+
+
+def test_download_stops_before_running_when_cancelled_already(tmp_path: Path) -> None:
+    request = DownloadRequest(
+        url="https://www.youtube.com/playlist?list=PL123",
+        output_dir=tmp_path,
+        archive_file=tmp_path / "archive.txt",
+    )
+    with (
+        patch("playlist_audio.downloader.YoutubeDL") as mock_ydl,
+        pytest.raises(DownloadCancelled, match="Download cancelled"),
+    ):
+        download(request, cancel_check=lambda: True)
+    mock_ydl.assert_not_called()
+
+
+def test_download_configures_cancel_hooks_and_logger(tmp_path: Path) -> None:
+    request = DownloadRequest(
+        url="https://www.youtube.com/playlist?list=PL123",
+        output_dir=tmp_path,
+        archive_file=tmp_path / "archive.txt",
+    )
+    is_cancelled = False
+    ydl = MagicMock()
+    ydl.__enter__.return_value = ydl
+    ydl.extract_info.return_value = {"id": "abc123"}
+
+    with patch("playlist_audio.downloader.YoutubeDL", return_value=ydl) as mock_ydl:
+        download(request, cancel_check=lambda: is_cancelled)
+
+    ydl_options = mock_ydl.call_args.args[0]
+    assert "match_filter" in ydl_options
+    assert "logger" in ydl_options
+
+    match_filter = ydl_options["match_filter"]
+    logger = ydl_options["logger"]
+
+    # When cancellation is not requested, they do not raise
+    assert match_filter({"title": "demo"}) is None
+    logger.debug("extracting")
+    logger.info("info")
+    logger.warning("warning")
+    logger.error("error")
+
+    # When cancellation is requested, both raise DownloadCancelled
+    is_cancelled = True
+    with pytest.raises(DownloadCancelled):
+        match_filter({"title": "demo"})
+    with pytest.raises(DownloadCancelled):
+        logger.debug("extracting")
+    with pytest.raises(DownloadCancelled):
+        logger.info("info")
+    with pytest.raises(DownloadCancelled):
+        logger.warning("warning")
+    with pytest.raises(DownloadCancelled):
+        logger.error("error")
+
+
+def test_download_cancels_while_iterating_entries(tmp_path: Path) -> None:
+    request = DownloadRequest(
+        url="https://www.youtube.com/playlist?list=PL123",
+        output_dir=tmp_path,
+        archive_file=tmp_path / "archive.txt",
+    )
+    is_cancelled = False
+
+    def entry_generator():
+        nonlocal is_cancelled
+        yield {"id": "one"}
+        is_cancelled = True
+        yield {"id": "two"}
+
+    ydl = MagicMock()
+    ydl.__enter__.return_value = ydl
+    ydl.extract_info.return_value = {
+        "_type": "playlist",
+        "entries": entry_generator(),
+    }
+
+    with (
+        patch("playlist_audio.downloader.YoutubeDL", return_value=ydl),
+        pytest.raises(DownloadCancelled),
+    ):
+        download(request, cancel_check=lambda: is_cancelled)
+
+
+def test_download_error_with_cancellation_requested_raises_download_cancelled(
+    tmp_path: Path,
+) -> None:
+    request = DownloadRequest(
+        url="https://www.youtube.com/playlist?list=PL123",
+        output_dir=tmp_path,
+        archive_file=tmp_path / "archive.txt",
+    )
+    ydl = MagicMock()
+    ydl.__enter__.return_value = ydl
+    ydl.extract_info.side_effect = DownloadError("Network closed")
+
+    with (
+        patch("playlist_audio.downloader.YoutubeDL", return_value=ydl),
+        pytest.raises(DownloadCancelled),
+    ):
+        download(request, cancel_check=lambda: True)

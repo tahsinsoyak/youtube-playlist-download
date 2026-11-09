@@ -27,9 +27,15 @@
           <small>Local UI + CLI / 01</small>
         </span>
       </a>
-      <div class="local-badge" id="health-badge">
-        <span class="status-led" aria-hidden="true"></span>
-        <span>Local device only</span>
+      <div class="topbar-actions">
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+          <span class="theme-icon" aria-hidden="true">☀️</span>
+          <span class="theme-text">Light</span>
+        </button>
+        <div class="local-badge" id="health-badge">
+          <span class="status-led" aria-hidden="true"></span>
+          <span>Local device only</span>
+        </div>
       </div>
     </header>
 
@@ -255,6 +261,8 @@
           <div class="job-actions">
             <button id="cancel-active-button" type="button" hidden>Cancel active job</button>
             <button id="retry-job-button" type="button" hidden>Retry job</button>
+            <button id="open-folder-button" type="button" hidden>Open folder</button>
+            <button id="copy-path-button" type="button" hidden>Copy path</button>
           </div>
         </section>
 
@@ -267,6 +275,17 @@
             <span class="queue-count" id="queue-count">0 waiting</span>
           </header>
           <ol class="queue-list" id="queue-list"></ol>
+        </section>
+
+        <section class="queue-panel history-panel" id="history-panel" aria-labelledby="history-title" hidden>
+          <header>
+            <div>
+              <p class="deck-kicker">ARCHIVE LOG</p>
+              <h3 id="history-title">Recent jobs</h3>
+            </div>
+            <button class="clear-history-button" id="clear-history-button" type="button">Clear history</button>
+          </header>
+          <ol class="queue-list history-list" id="history-list"></ol>
         </section>
       </section>
     </main>

@@ -72,13 +72,13 @@ input, select {
   border: 1px solid rgba(238, 231, 214, 0.19);
   border-radius: 2px;
   outline: none;
-  background: #1a1814;
+  background: var(--surface);
   color: var(--paper);
   font: 14px var(--body-font);
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
-input::placeholder { color: #6f6a5e; }
+input::placeholder { color: var(--muted); }
 input:focus, select:focus {
   border-color: var(--acid);
   box-shadow: 0 0 0 3px rgba(215, 250, 104, 0.09);
@@ -123,7 +123,7 @@ input:disabled { opacity: 0.45; cursor: not-allowed; }
   width: 42px;
   height: 22px;
   border-radius: 20px;
-  background: #15130f;
+  background: var(--surface-alt);
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
@@ -259,7 +259,7 @@ details[open] summary::after { content: "−"; }
   margin-top: 24px;
   padding: 18px;
   border: 1px solid var(--line);
-  background: #171510;
+  background: var(--surface);
 }
 
 .job-status[hidden] { display: none; }
@@ -271,16 +271,16 @@ details[open] summary::after { content: "−"; }
   align-items: center;
   justify-content: space-around;
   overflow: hidden;
-  border: 1px solid #403b32;
+  border: 1px solid var(--line);
   border-radius: 30px 30px 8px 8px;
-  background: #0d0c0a;
+  background: var(--surface-tape);
 }
 
 .reel {
   z-index: 1;
   width: 38px;
   height: 38px;
-  border: 8px dotted #5b5548;
+  border: 8px dotted var(--muted);
   border-radius: 50%;
 }
 
@@ -321,11 +321,11 @@ progress {
   margin-top: 16px;
   border: 0;
   border-radius: 0;
-  background: #312d25;
+  background: var(--surface-alt);
   color: var(--signal);
 }
 
-progress::-webkit-progress-bar { background: #312d25; }
+progress::-webkit-progress-bar { background: var(--surface-alt); }
 progress::-webkit-progress-value { background: var(--signal); }
 progress::-moz-progress-bar { background: var(--signal); }
 
