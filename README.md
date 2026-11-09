@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Powered by yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-red.svg)](https://github.com/yt-dlp/yt-dlp)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Patreon](https://img.shields.io/badge/Patreon-Support-F96854?style=flat&logo=patreon&logoColor=white)](https://www.patreon.com/tahsinsoyak)
 
 Fast, lightweight local Web UI & CLI to archive **public, unlisted, and private YouTube playlists** as high-quality **MP3, M4A, or Opus** audio files with metadata and album art.
 
@@ -91,6 +92,18 @@ uv run youtube-playlist-download download "PLAYLIST_URL" --audio-format opus --p
 * [Private Playlists & Troubleshooting](docs/private-playlists.md)
 * [Audio Quality & Codecs](docs/audio-quality.md)
 * [Legal & Fair-Use Boundaries](docs/legal-and-ethics.md)
+
+---
+
+## 💖 Support the Project
+
+If this project helps you archive and organize your music library, consider supporting ongoing maintenance and updates:
+
+<p align="center">
+  <a href="https://www.patreon.com/tahsinsoyak" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/Support_on-Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Support on Patreon">
+  </a>
+</p>
 
 ---
 
