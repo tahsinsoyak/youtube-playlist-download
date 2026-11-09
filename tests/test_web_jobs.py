@@ -3,7 +3,7 @@ from threading import Event
 from time import monotonic, sleep
 from unittest.mock import patch
 
-from playlist_audio.downloader import DownloadFailed, DownloadOutcome
+from playlist_audio.downloader import DownloadCancelled, DownloadFailed, DownloadOutcome
 from playlist_audio.models import DownloadRequest
 from playlist_audio.web.jobs import JobManager
 
@@ -20,7 +20,7 @@ def make_request(tmp_path: Path) -> DownloadRequest:
 def test_job_completes_without_exposing_source_url(tmp_path: Path) -> None:
     finished = Event()
 
-    def fake_download(request, progress_hook=None) -> DownloadOutcome:
+    def fake_download(request, progress_hook=None, **_kwargs: object) -> DownloadOutcome:
         if progress_hook:
             progress_hook(
                 {
@@ -60,7 +60,7 @@ def test_job_completes_without_exposing_source_url(tmp_path: Path) -> None:
 def test_job_failure_surfaces_error_message(tmp_path: Path) -> None:
     finished = Event()
 
-    def fake_download(request, progress_hook=None) -> DownloadOutcome:
+    def fake_download(request, progress_hook=None, **_kwargs: object) -> DownloadOutcome:
         finished.set()
         raise DownloadFailed("Could not read the Chrome session.")
 
@@ -82,7 +82,7 @@ def test_job_failure_surfaces_error_message(tmp_path: Path) -> None:
 def test_unexpected_job_error_does_not_leak_internal_details(tmp_path: Path) -> None:
     finished = Event()
 
-    def fake_download(request, progress_hook=None) -> DownloadOutcome:
+    def fake_download(request, progress_hook=None, **_kwargs: object) -> DownloadOutcome:
         finished.set()
         raise RuntimeError("stack trace with a local file path")
 
@@ -105,7 +105,7 @@ def test_cancel_removes_a_queued_job(tmp_path: Path) -> None:
     first_started = Event()
     release_first = Event()
 
-    def fake_download(request, progress_hook=None) -> DownloadOutcome:
+    def fake_download(request, progress_hook=None, **_kwargs: object) -> DownloadOutcome:
         first_started.set()
         assert release_first.wait(timeout=2)
         return DownloadOutcome(total_items=1, available_items=1, unavailable_items=0)
@@ -134,7 +134,7 @@ def test_can_cancel_the_active_job(tmp_path: Path) -> None:
     started = Event()
     release = Event()
 
-    def fake_download(request, progress_hook=None) -> DownloadOutcome:
+    def fake_download(request, progress_hook=None, **_kwargs: object) -> DownloadOutcome:
         started.set()
         assert release.wait(timeout=2)
         if progress_hook:
@@ -159,6 +159,42 @@ def test_can_cancel_the_active_job(tmp_path: Path) -> None:
     assert manager.get(active["id"])["state"] == "cancelled"
 
 
+def test_can_cancel_the_active_job_during_metadata_extraction(tmp_path: Path) -> None:
+    started = Event()
+    release = Event()
+
+    def fake_download(
+        request,
+        progress_hook=None,
+        cancel_check=None,
+        **_kwargs: object,
+    ) -> DownloadOutcome:
+        started.set()
+        assert release.wait(timeout=2)
+        if cancel_check and cancel_check():
+            raise DownloadCancelled("Download cancelled during metadata extraction")
+        return DownloadOutcome(total_items=1, available_items=1, unavailable_items=0)
+
+    manager = JobManager()
+    with patch("playlist_audio.web.jobs.download", side_effect=fake_download):
+        active = manager.create(make_request(tmp_path))
+        assert started.wait(timeout=2)
+
+        # Cancel while still in metadata extraction before any progress_hook fires
+        cancelled = manager.cancel(active["id"])
+        assert cancelled is not None
+        assert manager.get(active["id"])["state"] == "running"
+        assert manager.get(active["id"])["message"] == "Cancellation requested"
+
+        release.set()
+        deadline = monotonic() + 2
+        while manager.get(active["id"])["state"] == "running" and monotonic() < deadline:
+            sleep(0.01)
+
+    assert manager.get(active["id"])["state"] == "cancelled"
+    assert manager.get(active["id"])["message"] == "Download cancelled"
+
+
 def test_cancel_unknown_job_returns_none() -> None:
     manager = JobManager()
     assert manager.cancel("does-not-exist") is None
@@ -167,7 +203,7 @@ def test_cancel_unknown_job_returns_none() -> None:
 def test_can_retry_a_failed_job_during_the_same_session(tmp_path: Path) -> None:
     calls = 0
 
-    def flaky_download(request, progress_hook=None) -> DownloadOutcome:
+    def flaky_download(request, progress_hook=None, **_kwargs: object) -> DownloadOutcome:
         nonlocal calls
         calls += 1
         if calls == 1:
@@ -251,7 +287,7 @@ def test_restores_and_resumes_queue_after_restart(tmp_path: Path) -> None:
     first_started = Event()
     release_first = Event()
 
-    def blocking_download(request, progress_hook=None) -> DownloadOutcome:
+    def blocking_download(request, progress_hook=None, **_kwargs: object) -> DownloadOutcome:
         first_started.set()
         assert release_first.wait(timeout=2)
         return DownloadOutcome(total_items=1, available_items=1, unavailable_items=0)
@@ -274,7 +310,7 @@ def test_restores_and_resumes_queue_after_restart(tmp_path: Path) -> None:
 
     state_path.write_bytes(closed_state)
 
-    def fake_download(request, progress_hook=None) -> DownloadOutcome:
+    def fake_download(request, progress_hook=None, **_kwargs: object) -> DownloadOutcome:
         return DownloadOutcome(total_items=1, available_items=1, unavailable_items=0)
 
     with patch("playlist_audio.web.jobs.download", side_effect=fake_download):
@@ -298,7 +334,7 @@ def test_jobs_added_during_download_run_in_fifo_order(tmp_path: Path) -> None:
     second_finished = Event()
     call_order: list[str] = []
 
-    def fake_download(request, progress_hook=None) -> None:
+    def fake_download(request, progress_hook=None, **_kwargs: object) -> None:
         call_order.append(request.url)
         if len(call_order) == 1:
             first_started.set()

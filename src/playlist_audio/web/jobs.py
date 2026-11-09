@@ -215,6 +215,7 @@ class JobManager:
             outcome = download(
                 request,
                 progress_hook=lambda event: self._progress_hook(job_id, event),
+                cancel_check=lambda: self._cancel_was_requested(job_id),
             )
         except DownloadCancelled:
             self._mark_cancelled(job_id)
