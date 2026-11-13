@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Powered by yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-red.svg)](https://github.com/yt-dlp/yt-dlp)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![PyPI Version](https://img.shields.io/pypi/v/youtube-playlist-download.svg?color=blue)](https://pypi.org/project/youtube-playlist-download/)
 [![Patreon](https://img.shields.io/badge/Patreon-Support-F96854?style=flat&logo=patreon&logoColor=white)](https://www.patreon.com/tahsinsoyak)
 
 Fast, lightweight local Web UI & CLI to archive **public, unlisted, and private YouTube playlists** as high-quality **MP3, M4A, or Opus** audio files with metadata and album art.
@@ -25,13 +26,18 @@ winget install Gyan.FFmpeg DenoLand.Deno
 
 ### 2. Install & Run
 
-#### Option A: Run from anywhere with uv tool (Zero cloning)
+#### Option A: Install from PyPI (Recommended)
 ```powershell
-uv tool install git+https://github.com/tahsinsoyak/youtube-playlist-download.git
+pip install youtube-playlist-download
 youtube-playlist-download ui
 ```
 
-#### Option B: Clone & run (or double-click `run.bat` on Windows)
+#### Option B: Instant run with uvx (Zero install)
+```powershell
+uvx youtube-playlist-download ui
+```
+
+#### Option C: Clone & run (or double-click `run.bat` on Windows)
 ```powershell
 git clone https://github.com/tahsinsoyak/youtube-playlist-download.git
 cd youtube-playlist-download
