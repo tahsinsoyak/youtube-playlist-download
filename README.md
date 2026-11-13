@@ -5,7 +5,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Powered by yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-red.svg)](https://github.com/yt-dlp/yt-dlp)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![PyPI Version](https://img.shields.io/pypi/v/youtube-playlist-download.svg?color=blue)](https://pypi.org/project/youtube-playlist-download/)
 [![Patreon](https://img.shields.io/badge/Patreon-Support-F96854?style=flat&logo=patreon&logoColor=white)](https://www.patreon.com/tahsinsoyak)
 
 Fast, lightweight local Web UI & CLI to archive **public, unlisted, and private YouTube playlists** as high-quality **MP3, M4A, or Opus** audio files with metadata and album art.
@@ -26,18 +25,13 @@ winget install Gyan.FFmpeg DenoLand.Deno
 
 ### 2. Install & Run
 
-#### Option A: Instant run with uvx (Zero install)
+#### Option A: Run from anywhere with uv tool (Zero cloning)
 ```powershell
-uvx youtube-playlist-download ui
-```
-
-#### Option B: Install with pip
-```powershell
-pip install youtube-playlist-download
+uv tool install git+https://github.com/tahsinsoyak/youtube-playlist-download.git
 youtube-playlist-download ui
 ```
 
-#### Option C: Clone & run (or double-click `run.bat` on Windows)
+#### Option B: Clone & run (or double-click `run.bat` on Windows)
 ```powershell
 git clone https://github.com/tahsinsoyak/youtube-playlist-download.git
 cd youtube-playlist-download
@@ -98,18 +92,6 @@ uv run youtube-playlist-download download "PLAYLIST_URL" --audio-format opus --p
 * [Private Playlists & Troubleshooting](docs/private-playlists.md)
 * [Audio Quality & Codecs](docs/audio-quality.md)
 * [Legal & Fair-Use Boundaries](docs/legal-and-ethics.md)
-
----
-
-## ⭐ Star History
-
-If this project helps you, please consider giving it a star on GitHub!
-
-<p align="center">
-  <a href="https://star-history.com/#tahsinsoyak/youtube-playlist-download&Date" target="_blank" rel="noopener noreferrer">
-    <img src="https://api.star-history.com/svg?repos=tahsinsoyak/youtube-playlist-download&type=Date" alt="Star History Chart" width="100%">
-  </a>
-</p>
 
 ---
 
